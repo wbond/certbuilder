@@ -67,7 +67,7 @@ Less common keys include:
  - `incorporation_state_or_province`
  - `incorporation_country`
 
-See [`CertificateBuilder.subject`](docs/api.md#subject-attribute) for a full
+See [`CertificateBuilder.subject`](api.md#subject-attribute) for a full
 list of supported name keys.
 
 ## CA and End-Entity Certificates
