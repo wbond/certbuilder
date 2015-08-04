@@ -13,7 +13,7 @@ The documentation consists of the following topics:
 
  - [Basic Usage](#basic-usage)
  - [CA and End-Entity Certificates](#ca-and-end-entity-certificates)
- - [API Documentation](docs/api.md)
+ - [API Documentation](api.md)
 
 ## Basic Usage
 
