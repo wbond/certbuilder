@@ -10,8 +10,8 @@ OS-based Python crypto library *oscrypt* for cryptographic primitives.
 
 ## Dependencies
 
- - *asn1crypto*
- - *oscrypto*
+ - [*asn1crypto*](https://github.com/wbond/asn1crypto)
+ - [*oscrypto*](https://github.com/wbond/oscrypto)
  - Python 2.7, 3.3, 3.4, pypy or pypy3
 
 ## Version
