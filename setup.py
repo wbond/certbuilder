@@ -50,7 +50,7 @@ setup(
         'Programming Language :: Python :: 3.4',
     ],
 
-    keywords='crypto',
+    keywords='crypto pki',
 
     install_requires=['asn1crypto', 'oscrypto'],
     packages=find_packages(exclude=['tests*', 'dev*']),
