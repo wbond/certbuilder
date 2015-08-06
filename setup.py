@@ -28,7 +28,7 @@ setup(
     name='certbuilder',
     version=certbuilder.__version__,
 
-    description='Creates and signs X509 certificates',
+    description='Creates and signs X.509 certificates',
     long_description='Docs for this project are maintained at https://github.com/wbond/certbuilder#readme.',
 
     url='https://github.com/wbond/certbuilder',

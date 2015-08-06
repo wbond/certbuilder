@@ -599,7 +599,7 @@ class CertificateBuilder():
 
         See the definition of asn1crypto.x509.Extension to determine the
         appropriate object type for a given extension. Extensions are marked
-        as critical when RFC5280 or RFC6960 indicate so. If an extension is
+        as critical when RFC 5280 or RFC 6960 indicate so. If an extension is
         validly marked as critical or not (such as certificate policies and
         extended key usage), this class will mark it as non-critical.
 
@@ -644,7 +644,7 @@ class CertificateBuilder():
 
         :return:
             A bool indicating the correct value of the critical flag for
-            an extension, based on information from RFC5280 and RFC 6960. The
+            an extension, based on information from RFC 5280 and RFC 6960. The
             correct value is based on the terminology SHOULD or MUST.
         """
 
@@ -682,7 +682,7 @@ class CertificateBuilder():
 
     def build(self, signing_private_key):
         """
-        Validates the certificate information, constructs an X509 certificate
+        Validates the certificate information, constructs the ASN.1 structure
         and then signs it
 
         :param signing_private_key:

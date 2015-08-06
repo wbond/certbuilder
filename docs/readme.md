@@ -1,7 +1,7 @@
 # certbuilder Documentation
 
 *certbuilder* is a Python library for constructing X.509 certificates. It
-provides a high-level interface with knowledge of RFC5280 to produce, valid,
+provides a high-level interface with knowledge of RFC 5280 to produce, valid,
 correct certificates without terrible APIs or hunting through RFCs.
 
 Since its only dependencies are the
