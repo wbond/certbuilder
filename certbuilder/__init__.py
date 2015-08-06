@@ -32,7 +32,7 @@ def writer(func):
     return property(fget=lambda self: getattr(self, '_%s' % name), fset=func)
 
 
-class CertificateBuilder():
+class CertificateBuilder(object):
 
     _self_signed = False
     _end_entity = True
