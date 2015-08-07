@@ -194,7 +194,7 @@
 > > 
 > > See the definition of asn1crypto.x509.Extension to determine the
 > > appropriate object type for a given extension. Extensions are marked
-> > as critical when RFC5280 or RFC6960 indicate so. If an extension is
+> > as critical when RFC 5280 or RFC 6960 indicate so. If an extension is
 > > validly marked as critical or not (such as certificate policies and
 > > extended key usage), this class will mark it as non-critical.
 >
@@ -215,5 +215,5 @@
 > >     """
 > > ```
 > >
-> > Validates the certificate information, constructs an X509 certificate
+> > Validates the certificate information, constructs the ASN.1 structure
 > > and then signs it
