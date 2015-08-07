@@ -1,9 +1,11 @@
 # coding: utf-8
 from __future__ import unicode_literals, division, absolute_import, print_function
 
+import re
 import os
 import ast, _ast
 import textwrap
+from collections import OrderedDict
 
 import CommonMark
 
@@ -14,7 +16,10 @@ docs_dir = os.path.join(project_dir, 'docs')
 module_name = 'certbuilder'
 
 md_source_map = {
-    'docs/api.md': 'certbuilder/__init__.py'
+    'docs/api.md': ['certbuilder/__init__.py']
+}
+
+definition_replacements = {
 }
 
 
@@ -43,10 +48,15 @@ def _get_func_info(docstring, def_lineno, code_lines, prefix):
     description_md = ''
     if description:
         description_md = "%s%s" % (prefix, description.replace("\n", "\n" + prefix))
+        description_md = re.sub('\n>(\\s+)\n', '\n>\n', description_md)
 
     params = params.strip()
     if params:
         definition += (':\n%s    """\n%s    ' % (prefix, prefix)) + params.replace('\n', '\n%s    ' % prefix) + ('\n%s    """' % prefix)
+        definition = re.sub('\n>(\\s+)\n', '\n>\n', definition)
+
+    for search, replace in definition_replacements.items():
+        definition = definition.replace(search, replace)
 
     return (definition, description_md)
 
@@ -99,6 +109,124 @@ def _find_sections(md_ast, sections, last, last_class, total_lines=None):
 find_sections = _find_sections
 
 
+def walk_ast(node, code_lines, sections, md_chunks):
+
+    if isinstance(node, _ast.FunctionDef):
+        key = ('function', node.name)
+        if key not in sections:
+            return
+
+        docstring = ast.get_docstring(node)
+        def_lineno = node.lineno + len(node.decorator_list)
+
+        definition, description_md = _get_func_info(docstring, def_lineno, code_lines, '> ')
+
+        md_chunk = textwrap.dedent("""
+            ### `%s()` function
+
+            > ```python
+            > %s
+            > ```
+            >
+            %s
+        """).strip() % (
+            node.name,
+            definition,
+            description_md
+        ) + "\n"
+
+        md_chunks[key] = md_chunk
+
+    elif isinstance(node, _ast.ClassDef):
+        if ('class', node.name) not in sections:
+            return
+
+        for subnode in node.body:
+            if isinstance(subnode, _ast.FunctionDef):
+                node_id = node.name + '.' + subnode.name
+
+                method_key = ('method', node_id)
+                is_method = method_key in sections
+
+                attribute_key = ('attribute', node_id)
+                is_attribute = attribute_key in sections
+
+                is_constructor = subnode.name == '__init__'
+
+                if not is_constructor and not is_attribute and not is_method:
+                    continue
+
+                docstring = ast.get_docstring(subnode)
+                def_lineno = subnode.lineno + len(subnode.decorator_list)
+
+                if not docstring:
+                    continue
+
+                if is_method or is_constructor:
+                    definition, description_md = _get_func_info(docstring, def_lineno, code_lines, '> > ')
+
+                    if is_constructor:
+                        key = ('class', node.name)
+
+                        md_chunk = textwrap.dedent("""
+                            ### `%s()` class
+
+                            > ##### constructor
+                            >
+                            > > ```python
+                            > > %s
+                            > > ```
+                            > >
+                            %s
+                        """).strip() % (
+                            node.name,
+                            definition,
+                            description_md
+                        )
+
+                    else:
+                        key = method_key
+
+                        md_chunk = textwrap.dedent("""
+                            >
+                            > ##### `.%s()` method
+                            >
+                            > > ```python
+                            > > %s
+                            > > ```
+                            > >
+                            %s
+                        """).strip() % (
+                            subnode.name,
+                            definition,
+                            description_md
+                        )
+
+                else:
+                    key = attribute_key
+
+                    description = textwrap.dedent(docstring).strip()
+                    description_md = "> > %s" % (description.replace("\n", "\n> > "))
+
+                    md_chunk = textwrap.dedent("""
+                        >
+                        > ##### `.%s` attribute
+                        >
+                        %s
+                    """).strip() % (
+                        subnode.name,
+                        description_md
+                    )
+
+                md_chunks[key] = md_chunk
+
+    elif isinstance(node, _ast.If):
+        for subast in node.body:
+            walk_ast(subast, code_lines, sections, md_chunks)
+        for subast in node.orelse:
+            walk_ast(subast, code_lines, sections, md_chunks)
+
+
 def run():
     print('Updating API docs...')
 
@@ -114,14 +242,14 @@ def run():
     for md_file in md_files:
         md_file_relative = md_file[len(project_dir) + 1:]
         if md_file_relative in md_source_map:
-            py_file = md_source_map[md_file_relative]
-            py_path = os.path.join(project_dir, py_file)
+            py_files = md_source_map[md_file_relative]
+            py_paths = [os.path.join(project_dir, py_file) for py_file in py_files]
         else:
-            py_file = os.path.basename(md_file).replace('.md', '.py')
-            py_path = os.path.join(project_dir, module_name, py_file)
+            py_files = [os.path.basename(md_file).replace('.md', '.py')]
+            py_paths = [os.path.join(project_dir, module_name, py_files[0])]
 
-        if not os.path.exists(py_path):
-            continue
+            if not os.path.exists(py_paths[0]):
+                continue
 
         with open(md_file, 'rb') as f:
             markdown = f.read().decode('utf-8')
@@ -132,13 +260,21 @@ def run():
 
         last_class = []
         last = {}
-        sections = {}
+        sections = OrderedDict()
         find_sections(md_ast, sections, last, last_class, markdown.count("\n") + 1)
 
-        with open(os.path.join(py_path), 'rb') as f:
-            code = f.read().decode('utf-8')
-            module_ast = ast.parse(code, filename=py_file)
-            code_lines = list(code.splitlines())
+        md_chunks = {}
+
+        for index, py_file in enumerate(py_files):
+            py_path = py_paths[index]
+
+            with open(os.path.join(py_path), 'rb') as f:
+                code = f.read().decode('utf-8')
+                module_ast = ast.parse(code, filename=py_file)
+                code_lines = list(code.splitlines())
+
+            for node in ast.iter_child_nodes(module_ast):
+                walk_ast(node, code_lines, sections, md_chunks)
 
         added_lines = 0
 
@@ -152,115 +288,10 @@ def run():
             md_lines[start:end] = new_lines
             return added_lines
 
-        for node in ast.iter_child_nodes(module_ast):
-            if isinstance(node, _ast.FunctionDef):
-                key = ('function', node.name)
-                if key not in sections:
-                    continue
-
-                docstring = ast.get_docstring(node)
-                def_lineno = node.lineno + len(node.decorator_list)
-
-                definition, description_md = _get_func_info(docstring, def_lineno, code_lines, '> ')
-
-                md_chunk = textwrap.dedent("""
-                    ### `%s()` function
-
-                    > ```python
-                    > %s
-                    > ```
-                    >
-                    %s
-                """).strip() % (
-                    node.name,
-                    definition,
-                    description_md
-                )
-
-                added_lines = _replace_md(key, sections, md_chunk, md_lines, added_lines)
-
-            elif isinstance(node, _ast.ClassDef):
-                if ('class', node.name) not in sections:
-                    continue
-
-                for subnode in node.body:
-                    if isinstance(subnode, _ast.FunctionDef):
-                        node_id = node.name + '.' + subnode.name
-
-                        method_key = ('method', node_id)
-                        is_method = method_key in sections
-
-                        attribute_key = ('attribute', node_id)
-                        is_attribute = attribute_key in sections
-
-                        is_constructor = subnode.name == '__init__'
-
-                        if not is_constructor and not is_attribute and not is_method:
-                            continue
-
-                        docstring = ast.get_docstring(subnode)
-                        def_lineno = subnode.lineno + len(subnode.decorator_list)
-
-                        if not docstring:
-                            continue
-
-                        if is_method or is_constructor:
-                            definition, description_md = _get_func_info(docstring, def_lineno, code_lines, '> > ')
-
-                            if is_constructor:
-                                key = ('class', node.name)
-
-                                md_chunk = textwrap.dedent("""
-                                    ### `%s()` class
-
-                                    > ##### constructor
-                                    >
-                                    > > ```python
-                                    > > %s
-                                    > > ```
-                                    > >
-                                    %s
-                                """).strip() % (
-                                    node.name,
-                                    definition,
-                                    description_md
-                                )
-
-                            else:
-                                key = method_key
-
-                                md_chunk = textwrap.dedent("""
-                                    >
-                                    > ##### `.%s()` method
-                                    >
-                                    > > ```python
-                                    > > %s
-                                    > > ```
-                                    > >
-                                    %s
-                                """).strip() % (
-                                    subnode.name,
-                                    definition,
-                                    description_md
-                                )
-
-                        else:
-                            key = attribute_key
-
-                            description = textwrap.dedent(docstring).strip()
-                            description_md = "> > %s" % (description.replace("\n", "\n> > "))
-
-                            md_chunk = textwrap.dedent("""
-                                >
-                                > ##### `.%s` attribute
-                                >
-                                %s
-                            """).strip() % (
-                                subnode.name,
-                                description_md
-                            )
-
-                        added_lines = _replace_md(key, sections, md_chunk, md_lines, added_lines)
+        for key in sections:
+            if key not in md_chunks:
+                raise ValueError('No documentation found for %s' % key[1])
+            added_lines = _replace_md(key, sections, md_chunks[key], md_lines, added_lines)
 
         markdown = '\n'.join(md_lines).strip() + '\n'
 
