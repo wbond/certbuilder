@@ -32,6 +32,21 @@ def writer(func):
     return property(fget=lambda self: getattr(self, '_%s' % name), fset=func)
 
 
+def _object_name(value):
+    """
+    :param value:
+        A value to get the object name of
+
+    :return:
+        A unicode string of the object name
+    """
+
+    cls = value.__class__
+    if cls.__module__ == 'builtins':
+        return cls.__name__
+    return '%s.%s' % (cls.__module__, cls.__name__)
+
+
 class CertificateBuilder(object):
 
     _self_signed = False
@@ -149,7 +164,7 @@ class CertificateBuilder(object):
         """
 
         if not isinstance(value, int_types):
-            raise ValueError('serial_number must be an integer, not %s' % value.__class__.__name__)
+            raise ValueError('serial_number must be an integer, not %s' % _object_name(value))
 
         if value < 0:
             raise ValueError('serial_number must be a non-negative integer, not %s' % repr(value))
@@ -168,7 +183,7 @@ class CertificateBuilder(object):
         """
 
         if not isinstance(value, x509.Certificate):
-            raise ValueError('issuer must be an instance of asn1crypto.x509.Certificate, not %s' % value.__class__.__name__)
+            raise ValueError('issuer must be an instance of asn1crypto.x509.Certificate, not %s' % _object_name(value))
 
         self._issuer = value
 
@@ -184,7 +199,7 @@ class CertificateBuilder(object):
         """
 
         if not isinstance(value, datetime):
-            raise ValueError('begin_date must be an instance of datetime.datetime, not %s' % value.__class__.__name__)
+            raise ValueError('begin_date must be an instance of datetime.datetime, not %s' % _object_name(value))
 
         self._begin_date = value
 
@@ -196,7 +211,7 @@ class CertificateBuilder(object):
         """
 
         if not isinstance(value, datetime):
-            raise ValueError('end_date must be an instance of datetime.datetime, not %s' % value.__class__.__name__)
+            raise ValueError('end_date must be an instance of datetime.datetime, not %s' % _object_name(value))
 
         self._end_date = value
 
@@ -241,7 +256,7 @@ class CertificateBuilder(object):
 
         is_dict = isinstance(value, dict)
         if not isinstance(value, x509.Name) and not is_dict:
-            raise ValueError('subject must be an instance of asn1crypto.x509.Name or a dict, not %s' % value.__class__.__name__)
+            raise ValueError('subject must be an instance of asn1crypto.x509.Name or a dict, not %s' % _object_name(value))
 
         if is_dict:
             value = x509.Name.build(value)
@@ -257,7 +272,7 @@ class CertificateBuilder(object):
 
         is_oscrypto = isinstance(value, asymmetric.PublicKey)
         if not isinstance(value, keys.PublicKeyInfo) and not is_oscrypto:
-            raise ValueError('subject_public_key must be an instance of asn1crypto.keys.PublicKeyInfo or oscrypto.asymmetric.PublicKey, not %s' % value.__class__.__name__)
+            raise ValueError('subject_public_key must be an instance of asn1crypto.keys.PublicKeyInfo or oscrypto.asymmetric.PublicKey, not %s' % _object_name(value))
 
         if is_oscrypto:
             value = value.asn1
@@ -388,7 +403,7 @@ class CertificateBuilder(object):
     @key_usage.setter
     def key_usage(self, value):
         if not isinstance(value, set) and value is not None:
-            raise ValueError('key_usage must be an instance of set, not %s' % value.__class__.__name__)
+            raise ValueError('key_usage must be an instance of set, not %s' % _object_name(value))
 
         if value == set() or value is None:
             self._key_usage = None
@@ -410,7 +425,7 @@ class CertificateBuilder(object):
     @extended_key_usage.setter
     def extended_key_usage(self, value):
         if not isinstance(value, set) and value is not None:
-            raise ValueError('extended_key_usage must be an instance of set, not %s' % value.__class__.__name__)
+            raise ValueError('extended_key_usage must be an instance of set, not %s' % _object_name(value))
 
         if value == set() or value is None:
             self._extended_key_usage = None
@@ -504,7 +519,7 @@ class CertificateBuilder(object):
 
         is_tuple = isinstance(value, tuple)
         if not is_tuple and not isinstance(value, str_cls):
-            raise ValueError('%s must be a unicode string or tuple of (unicode string, asn1crypto.x509.Certificate), not %s' % (name, value.__class__.__name__))
+            raise ValueError('%s must be a unicode string or tuple of (unicode string, asn1crypto.x509.Certificate), not %s' % (name, _object_name(value)))
 
         issuer = None
         if is_tuple:
@@ -512,7 +527,7 @@ class CertificateBuilder(object):
                 ValueError('%s must be a unicode string or 2-element tuple, not a %s-element tuple' % (name, len(value)))
 
             if not isinstance(value[0], str_cls) or not isinstance(value[1], x509.Certificate):
-                raise ValueError('%s must be a tuple of (unicode string, ans1crypto.x509.Certificate), not (%s, %s)' % (name, value[0].__class__.__name__, value[1].__class__.__name__))
+                raise ValueError('%s must be a tuple of (unicode string, ans1crypto.x509.Certificate), not (%s, %s)' % (name, _object_name(value[0]), _object_name(value[1])))
 
             url = value[0]
             issuer = value[1].subject
@@ -565,7 +580,7 @@ class CertificateBuilder(object):
             return
 
         if not isinstance(value, str_cls):
-            raise ValueError('ocsp_url must be a unicode string, not %s' % value.__class__.__name__)
+            raise ValueError('ocsp_url must be a unicode string, not %s' % _object_name(value))
 
         access_description = x509.AccessDescription({
             'access_method': 'ocsp',
@@ -626,7 +641,7 @@ class CertificateBuilder(object):
         spec = extension.spec('extn_value')
 
         if not isinstance(value, spec) and value is not None:
-            raise ValueError('value must be an instance of %s, not %s' % (spec.__name__, value.__class__.__name__))
+            raise ValueError('value must be an instance of %s.%s, not %s' % (spec.__module__, spec.__name__, _object_name(value)))
 
         if name in self._special_extensions:
             setattr(self, '_%s' % name, value)
@@ -698,7 +713,7 @@ class CertificateBuilder(object):
 
         is_oscrypto = isinstance(signing_private_key, asymmetric.PrivateKey)
         if not isinstance(signing_private_key, keys.PrivateKeyInfo) and not is_oscrypto:
-            raise ValueError('signing_private_key must be an instance of asn1crypto.keys.PrivateKeyInfo or oscrypto.asymmetric.PrivateKey, not %s' % signing_private_key.__class__.__name__)
+            raise ValueError('signing_private_key must be an instance of asn1crypto.keys.PrivateKeyInfo or oscrypto.asymmetric.PrivateKey, not %s' % _object_name(signing_private_key))
 
         if self._self_signed is not True and self._issuer is None:
             raise ValueError('Certificate must be self-signed, or an issuer must be specified')
