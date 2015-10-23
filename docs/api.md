@@ -21,25 +21,6 @@
 > > and will be valid from the moment created for one year. The serial
 > > number will be generated from the current time and a random number.
 >
-> ##### `.end_entity` attribute
->
-> > A bool - if the certificate should not be allowed to sign child
-> > certificates.
-> > 
-> > Also changes the key usage and extended key usage. When the certificate
-> > is an end-entity certificate, the values will be set to:
-> > 
-> >   - .key_usage = {"digital_signature", "key_encipherment"}
-> >   - .extended_key_usage = {"server_auth", "client_auth"}
-> > 
-> > When the certificate is a CA cert, the values will be set to:
-> > 
-> >   - .key_usage = {"key_cert_sign", "crl_sign"}
-> >   - .extended_key_usage = None
-> > 
-> > These can also be changed by manually setting the .key_usage and
-> > .extended_key_usage attributes with a set of unicode strings.
->
 > ##### `.self_signed` attribute
 >
 > > A bool - if the certificate should be self-signed.
@@ -112,8 +93,7 @@
 >
 > ##### `.ca` attribute
 >
-> > A bool - if the certificate is a CA cert. Normally this is
-> > automatically determined by the .end_entity and .issuer attributes.
+> > A bool - if the certificate is a CA cert
 >
 > ##### `.subject_alt_domains` attribute
 >
