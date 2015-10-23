@@ -37,7 +37,6 @@ def writer(func):
 class CertificateBuilder(object):
 
     _self_signed = False
-    _end_entity = True
     _serial_number = None
     _issuer = None
     _begin_date = None
@@ -93,43 +92,9 @@ class CertificateBuilder(object):
         self.subject = subject
         self.subject_public_key = subject_public_key
         self.ca = False
-        self.end_entity = True
 
         self._hash_algo = 'sha256'
         self._other_extensions = {}
-
-    @writer
-    def end_entity(self, value):  #pylint: disable=E0202
-        """
-        A bool - if the certificate should not be allowed to sign child
-        certificates.
-
-        Also changes the key usage and extended key usage. When the certificate
-        is an end-entity certificate, the values will be set to:
-
-          - .key_usage = {"digital_signature", "key_encipherment"}
-          - .extended_key_usage = {"server_auth", "client_auth"}
-
-        When the certificate is a CA cert, the values will be set to:
-
-          - .key_usage = {"key_cert_sign", "crl_sign"}
-          - .extended_key_usage = None
-
-        These can also be changed by manually setting the .key_usage and
-        .extended_key_usage attributes with a set of unicode strings.
-        """
-
-        if not value and self.ca is False:
-            raise ValueError('end_entity must not be False if ca is False')
-
-        self._end_entity = bool(value)
-
-        if not value:
-            self._key_usage = x509.KeyUsage({'key_cert_sign', 'crl_sign'})
-            self._extended_key_usage = x509.ExtKeyUsageSyntax(['ocsp_signing'])
-        else:
-            self._key_usage = x509.KeyUsage({'digital_signature', 'key_encipherment'})
-            self._extended_key_usage = x509.ExtKeyUsageSyntax(['server_auth', 'client_auth'])
 
     @writer
     def self_signed(self, value):
@@ -333,18 +298,21 @@ class CertificateBuilder(object):
     @property
     def ca(self):
         """
-        A bool - if the certificate is a CA cert. Normally this is
-        automatically determined by the .end_entity and .issuer attributes.
+        A bool - if the certificate is a CA cert
         """
 
         return self._basic_constraints['ca'].native
 
     @ca.setter
     def ca(self, value):
-        if not value and self._end_entity is False:
-            raise ValueError('ca must not be False if end_entity is False')
-
         self._basic_constraints = x509.BasicConstraints({'ca': bool(value)})
+
+        if value:
+            self._key_usage = x509.KeyUsage(set(['key_cert_sign', 'crl_sign']))
+            self._extended_key_usage = x509.ExtKeyUsageSyntax(['ocsp_signing'])
+        else:
+            self._key_usage = x509.KeyUsage(set(['digital_signature', 'key_encipherment']))
+            self._extended_key_usage = x509.ExtKeyUsageSyntax(['server_auth', 'client_auth'])
 
     @property
     def subject_alt_domains(self):
@@ -763,7 +731,6 @@ class CertificateBuilder(object):
             'key_usage': True,
             'private_key_usage_period': False,
             'issuer_alt_name': False,
-            'basic_constraints': True,
             'name_constraints': True,
             'crl_distribution_points': False,
             # Based on example EV certificates, non-CA certs have this marked

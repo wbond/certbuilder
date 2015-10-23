@@ -101,7 +101,7 @@ builder = CertificateBuilder(
     root_ca_public_key
 )
 builder.self_signed = True
-builder.end_entity = False
+builder.ca = True
 root_ca_certificate = builder.build(root_ca_private_key)
 
 with open('/path/to/my/env/root_ca.crt', 'wb') as f:

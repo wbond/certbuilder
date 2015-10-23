@@ -36,11 +36,11 @@ class CertificateBuilderTests(unittest.TestCase):
 
         self.assertEqual('sha256', new_certificate.hash_algo)
         self.assertEqual('ecdsa', new_certificate.signature_algo)
-        self.assertEqual({'key_usage', 'basic_constraints'}, new_certificate.critical_extensions)
+        self.assertEqual({'key_usage'}, new_certificate.critical_extensions)
         self.assertEqual({'digital_signature', 'key_encipherment'}, new_certificate.key_usage_value.native)
         self.assertEqual(['server_auth', 'client_auth'], new_certificate.extended_key_usage_value.native)
         self.assertEqual(None, new_certificate.authority_key_identifier)
-        self.assertEqual(True, new_certificate.ca)
+        self.assertEqual(False, new_certificate.ca)
         self.assertEqual(True, new_certificate.self_issued)
         self.assertEqual('yes', new_certificate.self_signed)
         self.assertEqual(certificate.public_key.sha1, new_certificate.key_identifier)
@@ -60,7 +60,7 @@ class CertificateBuilderTests(unittest.TestCase):
         )
         builder.hash_algo = 'sha512'
         builder.self_signed = True
-        builder.end_entity = False
+        builder.ca = True
         certificate = builder.build(private_key)
         der_bytes = certificate.dump()
 
@@ -93,7 +93,7 @@ class CertificateBuilderTests(unittest.TestCase):
         )
         ca_builder.hash_algo = 'sha512'
         ca_builder.self_signed = True
-        ca_builder.end_entity = False
+        ca_builder.ca = True
         ca_certificate = ca_builder.build(ca_private_key)
 
         ee_builder = CertificateBuilder(
