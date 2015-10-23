@@ -56,7 +56,7 @@ class CertificateBuilder(object):
     _ocsp_no_check = False
     _other_extensions = None
 
-    _special_extensions = {
+    _special_extensions = set([
         'basic_constraints',
         'subject_alt_name',
         'key_identifier',
@@ -67,12 +67,12 @@ class CertificateBuilder(object):
         'freshest_crl',
         'authority_information_access',
         'ocsp_no_check',
-    }
-    _deprecated_extensions = {
+    ])
+    _deprecated_extensions = set([
         'subject_directory_attributes',
         'entrust_version_extension',
         'netscape_certificate_type',
-    }
+    ])
 
     def __init__(self, subject, subject_public_key):
         """

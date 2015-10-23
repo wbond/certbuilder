@@ -36,8 +36,8 @@ class CertificateBuilderTests(unittest.TestCase):
 
         self.assertEqual('sha256', new_certificate.hash_algo)
         self.assertEqual('ecdsa', new_certificate.signature_algo)
-        self.assertEqual({'key_usage'}, new_certificate.critical_extensions)
-        self.assertEqual({'digital_signature', 'key_encipherment'}, new_certificate.key_usage_value.native)
+        self.assertEqual(set(['key_usage']), new_certificate.critical_extensions)
+        self.assertEqual(set(['digital_signature', 'key_encipherment']), new_certificate.key_usage_value.native)
         self.assertEqual(['server_auth', 'client_auth'], new_certificate.extended_key_usage_value.native)
         self.assertEqual(None, new_certificate.authority_key_identifier)
         self.assertEqual(False, new_certificate.ca)
@@ -68,8 +68,8 @@ class CertificateBuilderTests(unittest.TestCase):
 
         self.assertEqual('sha512', new_certificate.hash_algo)
         self.assertEqual('ecdsa', new_certificate.signature_algo)
-        self.assertEqual({'key_usage', 'basic_constraints'}, new_certificate.critical_extensions)
-        self.assertEqual({'key_cert_sign', 'crl_sign'}, new_certificate.key_usage_value.native)
+        self.assertEqual(set(['key_usage', 'basic_constraints']), new_certificate.critical_extensions)
+        self.assertEqual(set(['key_cert_sign', 'crl_sign']), new_certificate.key_usage_value.native)
         self.assertEqual(['ocsp_signing'], new_certificate.extended_key_usage_value.native)
         self.assertEqual(None, new_certificate.authority_key_identifier)
         self.assertEqual(True, new_certificate.ca)
@@ -115,8 +115,8 @@ class CertificateBuilderTests(unittest.TestCase):
 
         self.assertEqual('sha256', new_certificate.hash_algo)
         self.assertEqual('ecdsa', new_certificate.signature_algo)
-        self.assertEqual({'key_usage'}, new_certificate.critical_extensions)
-        self.assertEqual({'digital_signature', 'key_encipherment'}, new_certificate.key_usage_value.native)
+        self.assertEqual(set(['key_usage']), new_certificate.critical_extensions)
+        self.assertEqual(set(['digital_signature', 'key_encipherment']), new_certificate.key_usage_value.native)
         self.assertEqual(['server_auth', 'client_auth'], new_certificate.extended_key_usage_value.native)
         self.assertEqual(ca_certificate.key_identifier, new_certificate.authority_key_identifier)
         self.assertEqual(False, new_certificate.ca)
