@@ -1,8 +1,10 @@
 # coding: utf-8
 from __future__ import unicode_literals, division, absolute_import, print_function
 
-import sys
 from datetime import datetime, timedelta
+import re
+import sys
+import textwrap
 import time
 
 from asn1crypto import x509, keys, core
@@ -10,8 +12,8 @@ from asn1crypto.util import int_to_bytes, int_from_bytes, timezone
 from oscrypto import asymmetric, util
 
 if sys.version_info < (3,):
-    int_types = (int, long)  #pylint: disable=E0602
-    str_cls = unicode  #pylint: disable=E0602
+    int_types = (int, long)  # noqa
+    str_cls = unicode  # noqa
     byte_cls = str
 else:
     int_types = (int,)
@@ -30,21 +32,6 @@ def writer(func):
 
     name = func.__name__
     return property(fget=lambda self: getattr(self, '_%s' % name), fset=func)
-
-
-def _object_name(value):
-    """
-    :param value:
-        A value to get the object name of
-
-    :return:
-        A unicode string of the object name
-    """
-
-    cls = value.__class__
-    if cls.__module__ == 'builtins':
-        return cls.__name__
-    return '%s.%s' % (cls.__module__, cls.__name__)
 
 
 class CertificateBuilder(object):
@@ -164,14 +151,30 @@ class CertificateBuilder(object):
         """
 
         if not isinstance(value, int_types):
-            raise ValueError('serial_number must be an integer, not %s' % _object_name(value))
+            raise TypeError(_pretty_message(
+                '''
+                serial_number must be an integer, not %s
+                ''',
+                _type_name(value)
+            ))
 
         if value < 0:
-            raise ValueError('serial_number must be a non-negative integer, not %s' % repr(value))
+            raise ValueError(_pretty_message(
+                '''
+                serial_number must be a non-negative integer, not %s
+                ''',
+                repr(value)
+            ))
 
         if len(int_to_bytes(value)) > 20:
             required_bits = len(int_to_bytes(value)) * 8
-            raise ValueError('serial_number must be an integer that can be represented by a 160-bit number, specified requires %s' % required_bits)
+            raise ValueError(_pretty_message(
+                '''
+                serial_number must be an integer that can be represented by a
+                160-bit number, specified requires %s
+                ''',
+                required_bits
+            ))
 
         self._serial_number = value
 
@@ -183,7 +186,13 @@ class CertificateBuilder(object):
         """
 
         if not isinstance(value, x509.Certificate):
-            raise ValueError('issuer must be an instance of asn1crypto.x509.Certificate, not %s' % _object_name(value))
+            raise TypeError(_pretty_message(
+                '''
+                issuer must be an instance of asn1crypto.x509.Certificate,
+                not %s
+                ''',
+                _type_name(value)
+            ))
 
         self._issuer = value
 
@@ -199,7 +208,12 @@ class CertificateBuilder(object):
         """
 
         if not isinstance(value, datetime):
-            raise ValueError('begin_date must be an instance of datetime.datetime, not %s' % _object_name(value))
+            raise TypeError(_pretty_message(
+                '''
+                begin_date must be an instance of datetime.datetime, not %s
+                ''',
+                _type_name(value)
+            ))
 
         self._begin_date = value
 
@@ -211,12 +225,17 @@ class CertificateBuilder(object):
         """
 
         if not isinstance(value, datetime):
-            raise ValueError('end_date must be an instance of datetime.datetime, not %s' % _object_name(value))
+            raise TypeError(_pretty_message(
+                '''
+                end_date must be an instance of datetime.datetime, not %s
+                ''',
+                _type_name(value)
+            ))
 
         self._end_date = value
 
     @writer
-    def subject(self, value):  #pylint: disable=E0202
+    def subject(self, value):
         """
         An asn1crypto.x509.Name object, or a dict with a minimum of the
         following keys:
@@ -256,7 +275,13 @@ class CertificateBuilder(object):
 
         is_dict = isinstance(value, dict)
         if not isinstance(value, x509.Name) and not is_dict:
-            raise ValueError('subject must be an instance of asn1crypto.x509.Name or a dict, not %s' % _object_name(value))
+            raise TypeError(_pretty_message(
+                '''
+                subject must be an instance of asn1crypto.x509.Name or a dict,
+                not %s
+                ''',
+                _type_name(value)
+            ))
 
         if is_dict:
             value = x509.Name.build(value)
@@ -264,7 +289,7 @@ class CertificateBuilder(object):
         self._subject = value
 
     @writer
-    def subject_public_key(self, value):  #pylint: disable=E0202
+    def subject_public_key(self, value):
         """
         An asn1crypto.keys.PublicKeyInfo or oscrypto.asymmetric.PublicKey
         object of the subject's public key.
@@ -272,7 +297,14 @@ class CertificateBuilder(object):
 
         is_oscrypto = isinstance(value, asymmetric.PublicKey)
         if not isinstance(value, keys.PublicKeyInfo) and not is_oscrypto:
-            raise ValueError('subject_public_key must be an instance of asn1crypto.keys.PublicKeyInfo or oscrypto.asymmetric.PublicKey, not %s' % _object_name(value))
+            raise TypeError(_pretty_message(
+                '''
+                subject_public_key must be an instance of
+                asn1crypto.keys.PublicKeyInfo or oscrypto.asymmetric.PublicKey,
+                not %s
+                ''',
+                _type_name(value)
+            ))
 
         if is_oscrypto:
             value = value.asn1
@@ -288,8 +320,13 @@ class CertificateBuilder(object):
         certificate - "sha1" (not recommended), "sha256" or "sha512".
         """
 
-        if value not in {'sha1', 'sha256', 'sha512'}:
-            raise ValueError('hash_algo must be one of "sha1", "sha256", "sha512", not %s' % repr(value))
+        if value not in set(['sha1', 'sha256', 'sha512']):
+            raise ValueError(_pretty_message(
+                '''
+                hash_algo must be one of "sha1", "sha256", "sha512", not %s
+                ''',
+                repr(value)
+            ))
 
         self._hash_algo = value
 
@@ -403,7 +440,12 @@ class CertificateBuilder(object):
     @key_usage.setter
     def key_usage(self, value):
         if not isinstance(value, set) and value is not None:
-            raise ValueError('key_usage must be an instance of set, not %s' % _object_name(value))
+            raise TypeError(_pretty_message(
+                '''
+                key_usage must be an instance of set, not %s
+                ''',
+                _type_name(value)
+            ))
 
         if value == set() or value is None:
             self._key_usage = None
@@ -425,7 +467,12 @@ class CertificateBuilder(object):
     @extended_key_usage.setter
     def extended_key_usage(self, value):
         if not isinstance(value, set) and value is not None:
-            raise ValueError('extended_key_usage must be an instance of set, not %s' % _object_name(value))
+            raise TypeError(_pretty_message(
+                '''
+                extended_key_usage must be an instance of set, not %s
+                ''',
+                _type_name(value)
+            ))
 
         if value == set() or value is None:
             self._extended_key_usage = None
@@ -519,15 +566,37 @@ class CertificateBuilder(object):
 
         is_tuple = isinstance(value, tuple)
         if not is_tuple and not isinstance(value, str_cls):
-            raise ValueError('%s must be a unicode string or tuple of (unicode string, asn1crypto.x509.Certificate), not %s' % (name, _object_name(value)))
+            raise TypeError(_pretty_message(
+                '''
+                %s must be a unicode string or tuple of (unicode string,
+                asn1crypto.x509.Certificate), not %s
+                ''',
+                name,
+                _type_name(value)
+            ))
 
         issuer = None
         if is_tuple:
             if len(value) != 2:
-                ValueError('%s must be a unicode string or 2-element tuple, not a %s-element tuple' % (name, len(value)))
+                raise ValueError(_pretty_message(
+                    '''
+                    %s must be a unicode string or 2-element tuple, not a
+                    %s-element tuple
+                    ''',
+                    name,
+                    len(value)
+                ))
 
             if not isinstance(value[0], str_cls) or not isinstance(value[1], x509.Certificate):
-                raise ValueError('%s must be a tuple of (unicode string, ans1crypto.x509.Certificate), not (%s, %s)' % (name, _object_name(value[0]), _object_name(value[1])))
+                raise TypeError(_pretty_message(
+                    '''
+                    %s must be a tuple of (unicode string,
+                    ans1crypto.x509.Certificate), not (%s, %s)
+                    ''',
+                    name,
+                    _type_name(value[0]),
+                    _type_name(value[1])
+                ))
 
             url = value[0]
             issuer = value[1].subject
@@ -580,7 +649,12 @@ class CertificateBuilder(object):
             return
 
         if not isinstance(value, str_cls):
-            raise ValueError('ocsp_url must be a unicode string, not %s' % _object_name(value))
+            raise TypeError(_pretty_message(
+                '''
+                ocsp_url must be a unicode string, not %s
+                ''',
+                _type_name(value)
+            ))
 
         access_description = x509.AccessDescription({
             'access_method': 'ocsp',
@@ -636,12 +710,26 @@ class CertificateBuilder(object):
         name = extension['extn_id'].native
 
         if name in self._deprecated_extensions and not allow_deprecated:
-            raise ValueError('An extension of the type %s was added, however it is deprecated. Please add the parameter allow_deprecated=True to the method call.' % name)
+            raise ValueError(_pretty_message(
+                '''
+                An extension of the type %s was added, however it is
+                deprecated. Please add the parameter allow_deprecated=True to
+                the method call.
+                ''',
+                name
+            ))
 
         spec = extension.spec('extn_value')
 
         if not isinstance(value, spec) and value is not None:
-            raise ValueError('value must be an instance of %s.%s, not %s' % (spec.__module__, spec.__name__, _object_name(value)))
+            raise TypeError(_pretty_message(
+                '''
+                value must be an instance of %s.%s, not %s
+                ''',
+                spec.__module__,
+                spec.__name__,
+                _type_name(value)
+            ))
 
         if name in self._special_extensions:
             setattr(self, '_%s' % name, value)
@@ -667,7 +755,7 @@ class CertificateBuilder(object):
             return len(self._subject) == 0
 
         if name == 'basic_constraints':
-            return self.ca == True
+            return self.ca is True
 
         return {
             'subject_directory_attributes': False,
@@ -713,10 +801,21 @@ class CertificateBuilder(object):
 
         is_oscrypto = isinstance(signing_private_key, asymmetric.PrivateKey)
         if not isinstance(signing_private_key, keys.PrivateKeyInfo) and not is_oscrypto:
-            raise ValueError('signing_private_key must be an instance of asn1crypto.keys.PrivateKeyInfo or oscrypto.asymmetric.PrivateKey, not %s' % _object_name(signing_private_key))
+            raise TypeError(_pretty_message(
+                '''
+                signing_private_key must be an instance of
+                asn1crypto.keys.PrivateKeyInfo or
+                oscrypto.asymmetric.PrivateKey, not %s
+                ''',
+                _type_name(signing_private_key)
+            ))
 
         if self._self_signed is not True and self._issuer is None:
-            raise ValueError('Certificate must be self-signed, or an issuer must be specified')
+            raise ValueError(_pretty_message(
+                '''
+                Certificate must be self-signed, or an issuer must be specified
+                '''
+            ))
 
         if self._self_signed:
             self._issuer = self._subject
@@ -733,9 +832,14 @@ class CertificateBuilder(object):
             self._end_date = self._begin_date + timedelta(365)
 
         if not self.ca:
-            for ca_only_extension in {'policy_mappings', 'policy_constraints', 'inhibit_any_policy'}:
+            for ca_only_extension in set(['policy_mappings', 'policy_constraints', 'inhibit_any_policy']):
                 if ca_only_extension in self._other_extensions:
-                    raise ValueError('Extension %s is only valid for CA certificates' % ca_only_extension)
+                    raise ValueError(_pretty_message(
+                        '''
+                        Extension %s is only valid for CA certificates
+                        ''',
+                        ca_only_extension
+                    ))
 
         signature_algo = signing_private_key.algorithm
         if signature_algo == 'ec':
@@ -795,3 +899,51 @@ class CertificateBuilder(object):
             },
             'signature_value': signature
         })
+
+
+def _pretty_message(string, *params):
+    """
+    Takes a multi-line string and does the following:
+
+     - dedents
+     - converts newlines with text before and after into a single line
+     - strips leading and trailing whitespace
+
+    :param string:
+        The string to format
+
+    :param *params:
+        Params to interpolate into the string
+
+    :return:
+        The formatted string
+    """
+
+    output = textwrap.dedent(string)
+
+    # Unwrap lines, taking into account bulleted lists, ordered lists and
+    # underlines consisting of = signs
+    if output.find('\n') != -1:
+        output = re.sub('(?<=\\S)\n(?=[^ \n\t\\d\\*\\-=])', ' ', output)
+
+    if params:
+        output = output % params
+
+    output = output.strip()
+
+    return output
+
+
+def _type_name(value):
+    """
+    :param value:
+        A value to get the object name of
+
+    :return:
+        A unicode string of the object name
+    """
+
+    cls = value.__class__
+    if cls.__module__ in set(['builtins', '__builtin__']):
+        return cls.__name__
+    return '%s.%s' % (cls.__module__, cls.__name__)

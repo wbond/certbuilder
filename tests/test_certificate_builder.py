@@ -13,7 +13,6 @@ tests_root = os.path.dirname(__file__)
 fixtures_dir = os.path.join(tests_root, 'fixtures')
 
 
-
 class CertificateBuilderTests(unittest.TestCase):
 
     def test_build_end_entity_cert(self):

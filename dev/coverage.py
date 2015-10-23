@@ -4,7 +4,6 @@ from __future__ import unicode_literals, division, absolute_import, print_functi
 import coverage
 
 
-
 def run():
     cov = coverage.Coverage(include='certbuilder/*.py')
     cov.start()

@@ -3,7 +3,8 @@ from __future__ import unicode_literals, division, absolute_import, print_functi
 
 import re
 import os
-import ast, _ast
+import ast
+import _ast
 import textwrap
 from collections import OrderedDict
 
@@ -52,7 +53,9 @@ def _get_func_info(docstring, def_lineno, code_lines, prefix):
 
     params = params.strip()
     if params:
-        definition += (':\n%s    """\n%s    ' % (prefix, prefix)) + params.replace('\n', '\n%s    ' % prefix) + ('\n%s    """' % prefix)
+        definition += ':\n%s    """\n%s    ' % (prefix, prefix)
+        definition += params.replace('\n', '\n%s    ' % prefix)
+        definition += '\n%s    """' % prefix
         definition = re.sub('\n>(\\s+)\n', '\n>\n', definition)
 
     for search, replace in definition_replacements.items():
