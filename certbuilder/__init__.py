@@ -25,7 +25,7 @@ __version__ = '0.9.0'
 __version_info__ = (0, 9, 0)
 
 
-def writer(func):
+def _writer(func):
     """
     Decorator for a custom writer, but a default reader
     """
@@ -96,7 +96,7 @@ class CertificateBuilder(object):
         self._hash_algo = 'sha256'
         self._other_extensions = {}
 
-    @writer
+    @_writer
     def self_signed(self, value):
         """
         A bool - if the certificate should be self-signed.
@@ -106,9 +106,8 @@ class CertificateBuilder(object):
 
         if self._self_signed:
             self._issuer = None
-            self.ca = True
 
-    @writer
+    @_writer
     def serial_number(self, value):
         """
         An int representable in 160 bits or less - must uniquely identify
@@ -143,7 +142,7 @@ class CertificateBuilder(object):
 
         self._serial_number = value
 
-    @writer
+    @_writer
     def issuer(self, value):
         """
         An asn1crypto.x509.Certificate object of the issuer. Used to populate
@@ -166,7 +165,7 @@ class CertificateBuilder(object):
             'key_identifier': value.public_key.sha1
         })
 
-    @writer
+    @_writer
     def begin_date(self, value):
         """
         A datetime.datetime object of when the certificate becomes valid.
@@ -182,7 +181,7 @@ class CertificateBuilder(object):
 
         self._begin_date = value
 
-    @writer
+    @_writer
     def end_date(self, value):
         """
         A datetime.datetime object of when the certificate is last to be
@@ -199,7 +198,7 @@ class CertificateBuilder(object):
 
         self._end_date = value
 
-    @writer
+    @_writer
     def subject(self, value):
         """
         An asn1crypto.x509.Name object, or a dict with a minimum of the
@@ -253,7 +252,7 @@ class CertificateBuilder(object):
 
         self._subject = value
 
-    @writer
+    @_writer
     def subject_public_key(self, value):
         """
         An asn1crypto.keys.PublicKeyInfo or oscrypto.asymmetric.PublicKey
@@ -278,7 +277,7 @@ class CertificateBuilder(object):
         self._key_identifier = self._subject_public_key.sha1
         self._authority_key_identifier = None
 
-    @writer
+    @_writer
     def hash_algo(self, value):
         """
         A unicode string of the hash algorithm to use when signing the
@@ -634,7 +633,7 @@ class CertificateBuilder(object):
 
         self._authority_information_access = x509.AuthorityInfoAccessSyntax([access_description])
 
-    @writer
+    @_writer
     def ocsp_no_check(self, value):
         """
         A bool - if the certificate should have the OCSP no check extension.
