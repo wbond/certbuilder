@@ -2,6 +2,7 @@
 from __future__ import unicode_literals, division, absolute_import, print_function
 
 from datetime import datetime, timedelta
+import inspect
 import re
 import sys
 import textwrap
@@ -691,10 +692,9 @@ class CertificateBuilder(object):
         if not isinstance(value, spec) and value is not None:
             raise TypeError(_pretty_message(
                 '''
-                value must be an instance of %s.%s, not %s
+                value must be an instance of %s, not %s
                 ''',
-                spec.__module__,
-                spec.__name__,
+                _type_name(spec),
                 _type_name(value)
             ))
 
@@ -909,7 +909,10 @@ def _type_name(value):
         A unicode string of the object name
     """
 
-    cls = value.__class__
+    if inspect.isclass(value):
+        cls = value
+    else:
+        cls = value.__class__
     if cls.__module__ in set(['builtins', '__builtin__']):
         return cls.__name__
     return '%s.%s' % (cls.__module__, cls.__name__)
