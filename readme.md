@@ -22,7 +22,7 @@ A Python library for creating and signing X.509 certificates.
 
 ## Version
 
-0.9.0 - [changelog](changelog.md)
+0.10.0 - [changelog](changelog.md)
 
 ## Installation
 
