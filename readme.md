@@ -27,7 +27,7 @@ A Python library for creating and signing X.509 certificates.
 ## Installation
 
 ```bash
-pip install git+git://github.com/wbond/asn1crypto.git
+pip install asn1crypto
 pip install git+git://github.com/wbond/oscrypto.git
 pip install git+git://github.com/wbond/certbuilder.git
 ```
