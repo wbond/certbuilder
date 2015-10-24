@@ -35,6 +35,21 @@ def _writer(func):
     return property(fget=lambda self: getattr(self, '_%s' % name), fset=func)
 
 
+def pem_armor_certificate(certificate):
+    """
+    Encodes a certificate into PEM format
+
+    :param certificate:
+        An asn1crypto.x509.Certificate object of the certificate to armor.
+        Typically this is obtained from CertificateBuilder.build().
+
+    :return:
+        A byte string of the PEM-encoded certificate
+    """
+
+    return asymmetric.dump_certificate(certificate)
+
+
 class CertificateBuilder(object):
 
     _self_signed = False

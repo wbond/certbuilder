@@ -1,5 +1,21 @@
 # certbuilder API Documentation
 
+### `pem_armor_certificate()` function
+
+> ```python
+> def pem_armor_certificate(certificate):
+>     """
+>     :param certificate:
+>         An asn1crypto.x509.Certificate object of the certificate to armor.
+>         Typically this is obtained from CertificateBuilder.build().
+>
+>     :return:
+>         A byte string of the PEM-encoded certificate
+>     """
+> ```
+>
+> Encodes a certificate into PEM format
+
 ### `CertificateBuilder()` class
 
 > ##### constructor
