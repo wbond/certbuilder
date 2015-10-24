@@ -6,6 +6,7 @@ A Python library for creating and signing X.509 certificates.
 
  - [asn1crypto](https://github.com/wbond/asn1crypto)
  - [oscrypto](https://github.com/wbond/oscrypto)
+ - [csrbuilder](https://github.com/wbond/csrbuilder)
  - [certbuilder](https://github.com/wbond/certbuilder)
  - [crlbuilder](https://github.com/wbond/crlbuilder)
 
@@ -22,7 +23,7 @@ A Python library for creating and signing X.509 certificates.
 
 ## Version
 
-0.10.0 - [changelog](changelog.md)
+0.11.0 - [changelog](changelog.md)
 
 ## Installation
 
