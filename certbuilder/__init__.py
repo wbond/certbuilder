@@ -401,8 +401,8 @@ class CertificateBuilder(object):
             self._subject_alt_name = x509.GeneralNames()
 
         if values is not None:
-            for ip in values:
-                new_general_name = x509.GeneralName(name=name, values=ip)
+            for value in values:
+                new_general_name = x509.GeneralName(name=name, value=value)
                 self._subject_alt_name.append(new_general_name)
 
         if len(self._subject_alt_name) == 0:

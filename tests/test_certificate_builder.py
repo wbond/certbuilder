@@ -29,6 +29,7 @@ class CertificateBuilderTests(unittest.TestCase):
             public_key
         )
         builder.self_signed = True
+        builder.subject_alt_domains = ['example.com']
         certificate = builder.build(private_key)
         der_bytes = certificate.dump()
 
@@ -44,6 +45,7 @@ class CertificateBuilderTests(unittest.TestCase):
         self.assertEqual(True, new_certificate.self_issued)
         self.assertEqual('yes', new_certificate.self_signed)
         self.assertEqual(certificate.public_key.sha1, new_certificate.key_identifier)
+        self.assertEqual(['example.com'], new_certificate.valid_domains)
 
     def test_build_ca_cert(self):
         public_key, private_key = asymmetric.generate_pair('ec', curve='secp256r1')
