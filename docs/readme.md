@@ -23,7 +23,7 @@ the `CertificateBuilder()` constructor:
 
 ```python
 from oscrypto import asymmetric
-from certbuilder import CertificateBuilder
+from certbuilder import CertificateBuilder, pem_armor_certificate
 
 
 public_key, private_key = asymmetric.generate_pair('rsa', bit_size=2048)
@@ -45,7 +45,7 @@ builder.self_signed = True
 certificate = builder.build(private_key)
 
 with open('/path/to/my/env/will_bond.crt', 'wb') as f:
-    f.write(asymmetric.dump_certificate(certificate))
+    f.write(pem_armor_certificate(certificate))
 ```
 
 All name components must be unicode strings. Common name keys include:
@@ -81,7 +81,7 @@ root CA, an intermediate CA certificate could be added.
 
 ```python
 from oscrypto import asymmetric
-from certbuilder import CertificateBuilder
+from certbuilder import CertificateBuilder, pem_armor_certificate
 
 
 # Generate and save the key and certificate for the root CA
@@ -105,7 +105,7 @@ builder.ca = True
 root_ca_certificate = builder.build(root_ca_private_key)
 
 with open('/path/to/my/env/root_ca.crt', 'wb') as f:
-    f.write(asymmetric.dump_certificate(root_ca_certificate))
+    f.write(pem_armor_certificate(root_ca_certificate))
 
 
 # Generate an end-entity key and certificate, signed by the root
@@ -128,5 +128,5 @@ builder.issuer = root_ca_certificate
 end_entity_certificate = builder.build(root_ca_private_key)
 
 with open('/path/to/my/env/will_bond.crt', 'wb') as f:
-    f.write(asymmetric.dump_certificate(end_entity_certificate))
+    f.write(pem_armor_certificate(end_entity_certificate))
 ```
