@@ -6,9 +6,9 @@ import os
 import ast
 import _ast
 import textwrap
-from collections import OrderedDict
 
 import CommonMark
+from collections import OrderedDict
 
 
 cur_dir = os.path.dirname(__file__)
@@ -16,15 +16,43 @@ project_dir = os.path.abspath(os.path.join(cur_dir, '..'))
 docs_dir = os.path.join(project_dir, 'docs')
 module_name = 'certbuilder'
 
-md_source_map = {
-    'docs/api.md': ['certbuilder/__init__.py']
+
+# Maps a markdown document to a Python source file to look in for
+# class/method/function docstrings
+MD_SOURCE_MAP = {
+    'docs/api.md': ['certbuilder/__init__.py'],
 }
 
-definition_replacements = {
-}
+# A search/replace dictionary to modify docstring contents before generating
+# markdown from them
+definition_replacements = {}
 
 
 def _get_func_info(docstring, def_lineno, code_lines, prefix):
+    """
+    Extracts the function signature and description of a Python function
+
+    :param docstring:
+        A unicode string of the docstring for the function
+
+    :param def_lineno:
+        An integer line number that function was defined on
+
+    :param code_lines:
+        A list of unicode string lines from the source file the function was
+        defined in
+
+    :param prefix:
+        A prefix to prepend to all output lines
+
+    :return:
+        A 2-element tuple:
+
+         - [0] A unicode string of the function signature with a docstring of
+               parameter info
+         - [1] A markdown snippet of the function description
+    """
+
     definition = code_lines[def_lineno - 1]
     definition = definition.strip().rstrip(':')
 
@@ -53,9 +81,9 @@ def _get_func_info(docstring, def_lineno, code_lines, prefix):
 
     params = params.strip()
     if params:
-        definition += ':\n%s    """\n%s    ' % (prefix, prefix)
+        definition += (':\n%s    """\n%s    ' % (prefix, prefix))
         definition += params.replace('\n', '\n%s    ' % prefix)
-        definition += '\n%s    """' % prefix
+        definition += ('\n%s    """' % prefix)
         definition = re.sub('\n>(\\s+)\n', '\n>\n', definition)
 
     for search, replace in definition_replacements.items():
@@ -65,11 +93,37 @@ def _get_func_info(docstring, def_lineno, code_lines, prefix):
 
 
 def _find_sections(md_ast, sections, last, last_class, total_lines=None):
+    """
+    Walks through a CommonMark AST to find section headers that delineate
+    content that should be updated by this script
+
+    :param md_ast:
+        The AST of the markdown document
+
+    :param sections:
+        A dict to store the start and end lines of a section. The key will be
+        a two-element tuple of the section type ("class", "function",
+        "method" or "attribute") and identifier. The values are a two-element
+        tuple of the start and end line number in the markdown document of the
+        section.
+
+    :param last:
+        A dict containing information about the last section header seen.
+        Includes the keys "type_name", "identifier", "start_line".
+
+    :param last_class:
+        A unicode string of the name of the last class found - used when
+        processing methods and attributes.
+
+    :param total_lines:
+        An integer of the total number of lines in the markdown document -
+        used to work around a bug in the API of the Python port of CommonMark
+    """
 
     for child in md_ast.children:
         if child.t == 'ATXHeader':
 
-            if child.level in {3, 5} and len(child.inline_content) == 2:
+            if child.level in set([3, 5]) and len(child.inline_content) == 2:
                 first = child.inline_content[0]
                 second = child.inline_content[1]
                 if first.t != 'Code':
@@ -92,7 +146,7 @@ def _find_sections(md_ast, sections, last, last_class, total_lines=None):
                         continue
                     last_class.append(identifier)
 
-                if type_name in {'method', 'attribute'}:
+                if type_name in set(['method', 'attribute']):
                     if child.level != 5:
                         continue
                     identifier = last_class[-1] + '.' + identifier
@@ -113,6 +167,28 @@ find_sections = _find_sections
 
 
 def walk_ast(node, code_lines, sections, md_chunks):
+    """
+    A callback used to walk the Python AST looking for classes, functions,
+    methods and attributes. Generates chunks of markdown markup to replace
+    the existing content.
+
+    :param node:
+        An _ast module node object
+
+    :param code_lines:
+        A list of unicode strings - the source lines of the Python file
+
+    :param sections:
+        A dict of markdown document sections that need to be updated. The key
+        will be a two-element tuple of the section type ("class", "function",
+        "method" or "attribute") and identifier. The values are a two-element
+        tuple of the start and end line number in the markdown document of the
+        section.
+
+    :param md_chunks:
+        A dict with keys from the sections param and the values being a unicode
+        string containing a chunk of markdown markup.
+    """
 
     if isinstance(node, _ast.FunctionDef):
         key = ('function', node.name)
@@ -171,9 +247,17 @@ def walk_ast(node, code_lines, sections, md_chunks):
                     if is_constructor:
                         key = ('class', node.name)
 
+                        class_docstring = ast.get_docstring(node) or ''
+                        class_description = textwrap.dedent(class_docstring).strip()
+                        if class_description:
+                            class_description_md = "> %s\n>" % (class_description.replace("\n", "\n> "))
+                        else:
+                            class_description_md = ''
+
                         md_chunk = textwrap.dedent("""
                             ### `%s()` class
 
+                            %s
                             > ##### constructor
                             >
                             > > ```python
@@ -183,9 +267,12 @@ def walk_ast(node, code_lines, sections, md_chunks):
                             %s
                         """).strip() % (
                             node.name,
+                            class_description_md,
                             definition,
                             description_md
                         )
+
+                        md_chunk = md_chunk.replace('\n\n\n', '\n\n')
 
                     else:
                         key = method_key
@@ -205,6 +292,9 @@ def walk_ast(node, code_lines, sections, md_chunks):
                             description_md
                         )
 
+                    if md_chunk[-5:] == '\n> >\n':
+                        md_chunk = md_chunk[0:-5]
+
                 else:
                     key = attribute_key
 
@@ -221,7 +311,7 @@ def walk_ast(node, code_lines, sections, md_chunks):
                         description_md
                     )
 
-                md_chunks[key] = md_chunk
+                md_chunks[key] = md_chunk.rstrip()
 
     elif isinstance(node, _ast.If):
         for subast in node.body:
@@ -231,6 +321,24 @@ def walk_ast(node, code_lines, sections, md_chunks):
 
 
 def run():
+    """
+    Looks through the docs/ dir and parses each markdown document, looking for
+    sections to update from Python docstrings. Looks for section headers in
+    the format:
+
+     - ### `ClassName()` class
+     - ##### `.method_name()` method
+     - ##### `.attribute_name` attribute
+     - ### `function_name()` function
+
+    The markdown content following these section headers up until the next
+    section header will be replaced by new markdown generated from the Python
+    docstrings of the associated source files.
+
+    By default maps docs/{name}.md to {modulename}/{name}.py. Allows for
+    custom mapping via the MD_SOURCE_MAP variable.
+    """
+
     print('Updating API docs...')
 
     md_files = []
@@ -244,8 +352,8 @@ def run():
 
     for md_file in md_files:
         md_file_relative = md_file[len(project_dir) + 1:]
-        if md_file_relative in md_source_map:
-            py_files = md_source_map[md_file_relative]
+        if md_file_relative in MD_SOURCE_MAP:
+            py_files = MD_SOURCE_MAP[md_file_relative]
             py_paths = [os.path.join(project_dir, py_file) for py_file in py_files]
         else:
             py_files = [os.path.basename(md_file).replace('.md', '.py')]
@@ -288,6 +396,12 @@ def run():
             end += added_lines
             new_lines = md_chunk.split('\n')
             added_lines += len(new_lines) - (end - start)
+
+            # Ensure a newline above each class header
+            if start > 0 and md_lines[start][0:4] == '### ' and md_lines[start - 1][0:1] == '>':
+                added_lines += 1
+                new_lines.insert(0, '')
+
             md_lines[start:end] = new_lines
             return added_lines
 
@@ -301,3 +415,7 @@ def run():
         if original_markdown != markdown:
             with open(md_file, 'wb') as f:
                 f.write(markdown.encode('utf-8'))
+
+
+if __name__ == '__main__':
+    run()
