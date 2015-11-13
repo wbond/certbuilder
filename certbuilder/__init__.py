@@ -165,14 +165,18 @@ class CertificateBuilder(object):
         both the issuer field, but also the authority key identifier extension.
         """
 
-        if not isinstance(value, x509.Certificate):
+        is_oscrypto = isinstance(value, asymmetric.Certificate)
+        if not isinstance(value, x509.Certificate) and not is_oscrypto:
             raise TypeError(_pretty_message(
                 '''
-                issuer must be an instance of asn1crypto.x509.Certificate,
-                not %s
+                issuer must be an instance of asn1crypto.x509.Certificate or
+                oscrypto.asymmetric.Certificate, not %s
                 ''',
                 _type_name(value)
             ))
+
+        if is_oscrypto:
+            value = value.asn1
 
         self._issuer = value.subject
 
