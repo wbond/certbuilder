@@ -174,7 +174,7 @@ class CertificateBuilder(object):
                 _type_name(value)
             ))
 
-        self._issuer = value
+        self._issuer = value.subject
 
         self._key_identifier = self._subject_public_key.sha1
         self._authority_key_identifier = x509.AuthorityKeyIdentifier({

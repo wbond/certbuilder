@@ -36,6 +36,26 @@ class CertificateBuilderTests(unittest.TestCase):
         new_certificate = asn1crypto.x509.Certificate.load(der_bytes)
 
         self.assertEqual('sha256', new_certificate.hash_algo)
+        self.assertEqual(
+            {
+                'country_name': 'US',
+                'state_or_province_name': 'Massachusetts',
+                'locality_name': 'Newbury',
+                'organization_name': 'Codex Non Sufficit LC',
+                'common_name': 'Will Bond',
+            },
+            new_certificate.issuer.native
+        )
+        self.assertEqual(
+            {
+                'country_name': 'US',
+                'state_or_province_name': 'Massachusetts',
+                'locality_name': 'Newbury',
+                'organization_name': 'Codex Non Sufficit LC',
+                'common_name': 'Will Bond',
+            },
+            new_certificate.subject.native
+        )
         self.assertEqual('ecdsa', new_certificate.signature_algo)
         self.assertEqual(set(['key_usage']), new_certificate.critical_extensions)
         self.assertEqual(set(['digital_signature', 'key_encipherment']), new_certificate.key_usage_value.native)
@@ -69,6 +89,26 @@ class CertificateBuilderTests(unittest.TestCase):
         new_certificate = asn1crypto.x509.Certificate.load(der_bytes)
 
         self.assertEqual('sha512', new_certificate.hash_algo)
+        self.assertEqual(
+            {
+                'country_name': 'US',
+                'state_or_province_name': 'Massachusetts',
+                'locality_name': 'Newbury',
+                'organization_name': 'Codex Non Sufficit LC',
+                'common_name': 'Will Bond',
+            },
+            new_certificate.issuer.native
+        )
+        self.assertEqual(
+            {
+                'country_name': 'US',
+                'state_or_province_name': 'Massachusetts',
+                'locality_name': 'Newbury',
+                'organization_name': 'Codex Non Sufficit LC',
+                'common_name': 'Will Bond',
+            },
+            new_certificate.subject.native
+        )
         self.assertEqual('ecdsa', new_certificate.signature_algo)
         self.assertEqual(set(['key_usage', 'basic_constraints']), new_certificate.critical_extensions)
         self.assertEqual(set(['key_cert_sign', 'crl_sign']), new_certificate.key_usage_value.native)
@@ -116,6 +156,26 @@ class CertificateBuilderTests(unittest.TestCase):
         new_certificate = asn1crypto.x509.Certificate.load(der_bytes)
 
         self.assertEqual('sha256', new_certificate.hash_algo)
+        self.assertEqual(
+            {
+                'country_name': 'US',
+                'state_or_province_name': 'Massachusetts',
+                'locality_name': 'Newbury',
+                'organization_name': 'Codex Non Sufficit LC',
+                'common_name': 'Codex Non Sufficit LC - Primary CA',
+            },
+            new_certificate.issuer.native
+        )
+        self.assertEqual(
+            {
+                'country_name': 'US',
+                'state_or_province_name': 'Massachusetts',
+                'locality_name': 'Newbury',
+                'organization_name': 'Codex Non Sufficit LC',
+                'common_name': 'Will Bond',
+            },
+            new_certificate.subject.native
+        )
         self.assertEqual('ecdsa', new_certificate.signature_algo)
         self.assertEqual(set(['key_usage']), new_certificate.critical_extensions)
         self.assertEqual(set(['digital_signature', 'key_encipherment']), new_certificate.key_usage_value.native)
