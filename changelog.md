@@ -1,5 +1,9 @@
 # changelog
 
+## 0.12.0
+
+ - Fix a bug with setting the issuer of a non-self-signed certificate
+
 ## 0.11.0
 
  - Added `pem_armor_certificate()` function
