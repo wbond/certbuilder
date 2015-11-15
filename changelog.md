@@ -1,5 +1,9 @@
 # changelog
 
+## 0.12.1
+
+ - Package metadata updates
+
 ## 0.12.0
 
  - Fix a bug with setting the issuer of a non-self-signed certificate

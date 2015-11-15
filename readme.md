@@ -25,7 +25,7 @@ A Python library for creating and signing X.509 certificates.
 
 ## Current Release
 
-0.12.0 - [changelog](changelog.md)
+0.12.1 - [changelog](changelog.md)
 
 ## Dependencies
 
