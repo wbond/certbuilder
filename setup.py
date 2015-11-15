@@ -57,7 +57,10 @@ setup(
 
     keywords='crypto pki',
 
-    install_requires=['asn1crypto', 'oscrypto'],
+    install_requires=[
+        'asn1crypto>=0.13',
+        'oscrypto>=0.12'
+    ],
     packages=find_packages(exclude=['tests*', 'dev*']),
 
     cmdclass={
