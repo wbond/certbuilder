@@ -763,6 +763,7 @@ class CertificateBuilder(object):
             'inhibit_any_policy': True,
             'authority_information_access': False,
             'subject_information_access': False,
+            'tls_feature': False,
             'ocsp_no_check': False,
             'entrust_version_extension': False,
             'netscape_certificate_type': False,
