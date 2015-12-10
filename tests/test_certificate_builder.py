@@ -36,20 +36,37 @@ class CertificateBuilderTests(unittest.TestCase):
             {'country_name': 'US', 'common_name': 'Test'},
             public_key
         )
+        builder.self_signed = True
 
         self.assertEqual(builder.subject_alt_domains, [])
 
         builder.subject_alt_domains = ['example.com', 'example.org']
+        builder.subject_alt_emails = ['test@example.com', 'test2@example.com']
         builder.subject_alt_ips = ['127.0.0.1']
+        builder.subject_alt_uris = ['http://example.com', 'https://bücher.ch']
 
         self.assertEqual(builder.subject_alt_domains, ['example.com', 'example.org'])
+        self.assertEqual(builder.subject_alt_emails, ['test@example.com', 'test2@example.com'])
         self.assertEqual(builder.subject_alt_ips, ['127.0.0.1'])
+        self.assertEqual(builder.subject_alt_uris, ['http://example.com', 'https://bücher.ch'])
 
         builder.subject_alt_domains = []
         self.assertEqual(builder.subject_alt_domains, [])
 
+        builder.subject_alt_emails = []
+        self.assertEqual(builder.subject_alt_emails, [])
+
         builder.subject_alt_ips = []
         self.assertEqual(builder.subject_alt_ips, [])
+
+        builder.subject_alt_uris = []
+        self.assertEqual(builder.subject_alt_uris, [])
+
+        builder.subject_alt_uris = ['https://bücher.ch']
+
+        certificate = builder.build(private_key)
+
+        self.assertEqual(b'\x86\x18https://xn--bcher-kva.ch', certificate.subject_alt_name_value[0].contents)
 
     def test_build_end_entity_cert(self):
         public_key, private_key = self.ec_secp256r1

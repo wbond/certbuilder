@@ -116,9 +116,18 @@
 > > A list of unicode strings - the domains in the subject alt name
 > > extension.
 >
+> ##### `.subject_alt_emails` attribute
+>
+> > A list of unicode strings - the email addresses in the subject alt name
+> > extension.
+>
 > ##### `.subject_alt_ips` attribute
 >
 > > A list of unicode strings - the IPs in the subject alt name extension.
+>
+> ##### `.subject_alt_uris` attribute
+>
+> > A list of unicode strings - the URIs in the subject alt name extension.
 >
 > ##### `.key_usage` attribute
 >

@@ -347,6 +347,19 @@ class CertificateBuilder(object):
         self._set_subject_alt('dns_name', value)
 
     @property
+    def subject_alt_emails(self):
+        """
+        A list of unicode strings - the email addresses in the subject alt name
+        extension.
+        """
+
+        return self._get_subject_alt('rfc822_name')
+
+    @subject_alt_emails.setter
+    def subject_alt_emails(self, value):
+        self._set_subject_alt('rfc822_name', value)
+
+    @property
     def subject_alt_ips(self):
         """
         A list of unicode strings - the IPs in the subject alt name extension.
@@ -357,6 +370,18 @@ class CertificateBuilder(object):
     @subject_alt_ips.setter
     def subject_alt_ips(self, value):
         self._set_subject_alt('ip_address', value)
+
+    @property
+    def subject_alt_uris(self):
+        """
+        A list of unicode strings - the URIs in the subject alt name extension.
+        """
+
+        return self._get_subject_alt('uniform_resource_identifier')
+
+    @subject_alt_uris.setter
+    def subject_alt_uris(self, value):
+        self._set_subject_alt('uniform_resource_identifier', value)
 
     def _get_subject_alt(self, name):
         """
