@@ -13,10 +13,11 @@ tests_root = os.path.dirname(__file__)
 fixtures_dir = os.path.join(tests_root, 'fixtures')
 
 
-class lazy_class_property(object):
+class lazy_class_property(object):  # noqa
     """
     Used for caching lazily generated key pairs.
     """
+
     def __init__(self, getter):
         self.getter = getter
 
@@ -220,14 +221,11 @@ class CertificateBuilderTests(unittest.TestCase):
         self.assertEqual(False, new_certificate.self_issued)
         self.assertEqual('no', new_certificate.self_signed)
 
-    #
     # Cached key pairs
-    #
-
     @lazy_class_property
-    def ec_secp256r1(cls):
+    def ec_secp256r1(self):
         return asymmetric.generate_pair('ec', curve='secp256r1')
 
     @lazy_class_property
-    def ec_secp521r1(cls):
+    def ec_secp521r1(self):
         return asymmetric.generate_pair('ec', curve='secp521r1')
