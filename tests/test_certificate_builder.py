@@ -13,10 +13,45 @@ tests_root = os.path.dirname(__file__)
 fixtures_dir = os.path.join(tests_root, 'fixtures')
 
 
+class lazy_class_property(object):
+    """
+    Used for caching lazily generated key pairs.
+    """
+    def __init__(self, getter):
+        self.getter = getter
+
+    def __get__(self, instance, owner):
+        value = self.getter(owner)
+        setattr(owner, self.getter.__name__, value)
+
+        return value
+
+
 class CertificateBuilderTests(unittest.TestCase):
+    def test_subject_alt_name_shortcuts(self):
+        public_key, private_key = self.ec_secp256r1
+
+        builder = CertificateBuilder(
+            {'country_name': 'US', 'common_name': 'Test'},
+            public_key
+        )
+
+        self.assertEqual(builder.subject_alt_domains, [])
+
+        builder.subject_alt_domains = ['example.com', 'example.org']
+        builder.subject_alt_ips = ['127.0.0.1']
+
+        self.assertEqual(builder.subject_alt_domains, ['example.com', 'example.org'])
+        self.assertEqual(builder.subject_alt_ips, ['127.0.0.1'])
+
+        builder.subject_alt_domains = []
+        self.assertEqual(builder.subject_alt_domains, [])
+
+        builder.subject_alt_ips = []
+        self.assertEqual(builder.subject_alt_ips, [])
 
     def test_build_end_entity_cert(self):
-        public_key, private_key = asymmetric.generate_pair('ec', curve='secp256r1')
+        public_key, private_key = self.ec_secp256r1
 
         builder = CertificateBuilder(
             {
@@ -68,7 +103,7 @@ class CertificateBuilderTests(unittest.TestCase):
         self.assertEqual(['example.com'], new_certificate.valid_domains)
 
     def test_build_ca_cert(self):
-        public_key, private_key = asymmetric.generate_pair('ec', curve='secp256r1')
+        public_key, private_key = self.ec_secp256r1
 
         builder = CertificateBuilder(
             {
@@ -120,8 +155,8 @@ class CertificateBuilderTests(unittest.TestCase):
         self.assertEqual(certificate.public_key.sha1, new_certificate.key_identifier)
 
     def test_build_chain_of_certs(self):
-        ca_public_key, ca_private_key = asymmetric.generate_pair('ec', curve='secp521r1')
-        ee_public_key, _ = asymmetric.generate_pair('ec', curve='secp256r1')
+        ca_public_key, ca_private_key = self.ec_secp521r1
+        ee_public_key, _ = self.ec_secp256r1
 
         ca_builder = CertificateBuilder(
             {
@@ -184,3 +219,15 @@ class CertificateBuilderTests(unittest.TestCase):
         self.assertEqual(False, new_certificate.ca)
         self.assertEqual(False, new_certificate.self_issued)
         self.assertEqual('no', new_certificate.self_signed)
+
+    #
+    # Cached key pairs
+    #
+
+    @lazy_class_property
+    def ec_secp256r1(cls):
+        return asymmetric.generate_pair('ec', curve='secp256r1')
+
+    @lazy_class_property
+    def ec_secp521r1(cls):
+        return asymmetric.generate_pair('ec', curve='secp521r1')
