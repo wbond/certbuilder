@@ -333,30 +333,24 @@ class CertificateBuilder(object):
             self._key_usage = x509.KeyUsage(set(['digital_signature', 'key_encipherment']))
             self._extended_key_usage = x509.ExtKeyUsageSyntax(['server_auth', 'client_auth'])
 
-    @property
-    def subject_alt_domains(self):
-        """
-        A list of unicode strings - the domains in the subject alt name
-        extension.
-        """
+    class SubjectAltShortcut(object):
+        """ Creates subject_alt_name shortcuts. """
+        def __init__(self, name):
+            self.name = name
 
-        return self._get_subject_alt('dns_name')
+        def __get__(self, instance, owner):
+            return instance._get_subject_alt(self.name) if instance else None
 
-    @subject_alt_domains.setter
-    def subject_alt_domains(self, value):
-        self._set_subject_alt('dns_name', value)
+        def __set__(self, instance, value):
+            return instance._set_subject_alt(self.name, value)
 
-    @property
-    def subject_alt_ips(self):
-        """
-        A list of unicode strings - the IPs in the subject alt name extension.
-        """
-
-        return self._get_subject_alt('ip_address')
-
-    @subject_alt_ips.setter
-    def subject_alt_ips(self, value):
-        self._set_subject_alt('ip_address', value)
+    # Shortcuts to subsets of subjectAltName. All of these properties get and
+    # set lists of values used to construct x509.GeneralName objects. In most
+    # common cases, these are just unicode strings.
+    subject_alt_emails = SubjectAltShortcut('rfc822_name')
+    subject_alt_domains = SubjectAltShortcut('dns_name')
+    subject_alt_uris = SubjectAltShortcut('uniform_resource_identifier')
+    subject_alt_ips = SubjectAltShortcut('ip_address')
 
     def _get_subject_alt(self, name):
         """
