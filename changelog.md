@@ -1,5 +1,10 @@
 # changelog
 
+## 0.13.0
+
+ - Added the `.subject_alt_emails` and `.subject_al_uris` attributes
+ - Added explicit support for the TLS Feature extension to `.set_extension()`
+
 ## 0.12.1
 
  - Package metadata updates
