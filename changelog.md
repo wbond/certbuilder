@@ -1,5 +1,9 @@
 # changelog
 
+## 0.14.1
+
+ - Fix a bug with setting the extended key usage of a CA certificate
+
 ## 0.14.0
 
  - Setting `.ca` to `True` no longer adds the `ocsp_signing` extended key usage
