@@ -328,6 +328,7 @@ class CertificateBuilder(object):
 
         if value:
             self._key_usage = x509.KeyUsage(set(['key_cert_sign', 'crl_sign']))
+            self._extended_key_usage = None
         else:
             self._key_usage = x509.KeyUsage(set(['digital_signature', 'key_encipherment']))
             self._extended_key_usage = x509.ExtKeyUsageSyntax(['server_auth', 'client_auth'])
