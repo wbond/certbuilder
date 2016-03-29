@@ -1,5 +1,11 @@
 # changelog
 
+## 0.14.0
+
+ - Setting `.ca` to `True` no longer adds the `ocsp_signing` extended key usage
+   since the Windows CryptoAPI treats that as a constraint that will be
+   propagated down the chain
+
 ## 0.13.0
 
  - Added the `.subject_alt_emails` and `.subject_al_uris` attributes

@@ -22,8 +22,8 @@ else:
     byte_cls = bytes
 
 
-__version__ = '0.13.0'
-__version_info__ = (0, 13, 0)
+__version__ = '0.14.0'
+__version_info__ = (0, 14, 0)
 
 
 def _writer(func):
