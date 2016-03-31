@@ -10,6 +10,23 @@ from tests.test_certificate_builder import CertificateBuilderTests
 test_classes = [CertificateBuilderTests]
 
 
+def make_suite():
+    """
+    Constructs a unittest.TestSuite() of all tests for the package. For use
+    with setuptools.
+
+    :return:
+        A unittest.TestSuite() object
+    """
+
+    loader = unittest.TestLoader()
+    suite = unittest.TestSuite()
+    for test_class in test_classes:
+        tests = loader.loadTestsFromTestCase(test_class)
+        suite.addTests(tests)
+    return suite
+
+
 def run(matcher=None):
     """
     Runs the tests
