@@ -32,7 +32,7 @@ A Python library for creating and signing X.509 certificates.
 
  - [*asn1crypto*](https://github.com/wbond/asn1crypto)
  - [*oscrypto*](https://github.com/wbond/oscrypto)
- - Python 2.6, 2.7, 3.2, 3.3, 3.4, 3.5, pypy or pypy3
+ - Python 2.6, 2.7, 3.2, 3.3, 3.4, 3.5 or pypy
 
 ## Installation
 
