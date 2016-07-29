@@ -1,5 +1,11 @@
 # changelog
 
+## 0.14.2
+
+ - Updated [asn1crypto](https://github.com/wbond/asn1crypto) dependency to
+   `0.18.1`, [oscrypto](https://github.com/wbond/oscrypto) dependency to
+   `0.16.1`.
+
 ## 0.14.1
 
  - Fix a bug with setting the extended key usage of a CA certificate
