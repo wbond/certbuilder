@@ -26,7 +26,7 @@
 > >     :param subject:
 > >         An asn1crypto.x509.Name object, or a dict - see the docstring
 > >         for .subject for a list of valid options
-> >     
+> >
 > >     :param subject_public_key:
 > >         An asn1crypto.keys.PublicKeyInfo object containing the public key
 > >         the certificate is being issued for
@@ -64,15 +64,15 @@
 >
 > > An asn1crypto.x509.Name object, or a dict with a minimum of the
 > > following keys:
-> > 
+> >
 > >  - "country_name"
 > >  - "state_or_province_name"
 > >  - "locality_name"
 > >  - "organization_name"
 > >  - "common_name"
-> > 
+> >
 > > Less common keys include:
-> > 
+> >
 > >  - "organizational_unit_name"
 > >  - "email_address"
 > >  - "street_address"
@@ -81,9 +81,9 @@
 > >  - "incorporation_locality"
 > >  - "incorporation_state_or_province"
 > >  - "incorporation_country"
-> > 
+> >
 > > Uncommon keys include:
-> > 
+> >
 > >  - "surname"
 > >  - "title"
 > >  - "serial_number"
@@ -94,7 +94,7 @@
 > >  - "dn_qualifier"
 > >  - "pseudonym"
 > >  - "domain_component"
-> > 
+> >
 > > All values should be unicode strings.
 >
 > ##### `.subject_public_key` attribute
@@ -143,7 +143,7 @@
 >
 > > Location of the certificate revocation list (CRL) for the certificate.
 > > Will be one of the following types:
-> > 
+> >
 > >  - None for no CRL
 > >  - A unicode string of the URL to the CRL for this certificate
 > >  - A 2-element tuple of (unicode string URL,
@@ -154,7 +154,7 @@
 >
 > > Location of the delta CRL for the certificate. Will be one of the
 > > following types:
-> > 
+> >
 > >  - None for no delta CRL
 > >  - A unicode string of the URL to the delta CRL for this certificate
 > >  - A 2-element tuple of (unicode string URL,
@@ -165,7 +165,7 @@
 >
 > > Location of the OCSP responder for this certificate. Will be one of the
 > > following types:
-> > 
+> >
 > >  - None for no OCSP responder
 > >  - A unicode string of the URL to the OCSP responder
 >
@@ -184,10 +184,10 @@
 > >     :param name:
 > >         A unicode string of an extension id name from
 > >         asn1crypto.x509.ExtensionId
-> >     
+> >
 > >     :param value:
 > >         A value object per the specs defined by asn1crypto.x509.Extension
-> >     
+> >
 > >     :param allow_deprecated:
 > >         A bool - indicates if deprecated extensions should be allowed
 > >     """
@@ -196,7 +196,7 @@
 > > Sets the value for an extension using a fully constructed
 > > asn1crypto.core.Asn1Value object. Normally this should not be needed,
 > > and the convenience attributes should be sufficient.
-> > 
+> >
 > > See the definition of asn1crypto.x509.Extension to determine the
 > > appropriate object type for a given extension. Extensions are marked
 > > as critical when RFC 5280 or RFC 6960 indicate so. If an extension is
@@ -213,7 +213,7 @@
 > >         object for the private key to sign the certificate with. If the key
 > >         is self-signed, this should be the private key that matches the
 > >         public key, otherwise it needs to be the issuer's private key.
-> >     
+> >
 > >     :return:
 > >         An asn1crypto.x509.Certificate object of the newly signed
 > >         certificate
