@@ -60,8 +60,8 @@ setup(
     keywords='crypto pki x509 certificate rsa dsa ec',
 
     install_requires=[
-        'asn1crypto>=0.13',
-        'oscrypto>=0.12'
+        'asn1crypto>=0.18.1',
+        'oscrypto>=0.16.0'
     ],
     packages=find_packages(exclude=['tests*', 'dev*']),
 
