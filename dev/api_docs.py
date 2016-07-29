@@ -16,7 +16,6 @@ project_dir = os.path.abspath(os.path.join(cur_dir, '..'))
 docs_dir = os.path.join(project_dir, 'docs')
 module_name = 'certbuilder'
 
-
 # Maps a markdown document to a Python source file to look in for
 # class/method/function docstrings
 MD_SOURCE_MAP = {
@@ -26,6 +25,10 @@ MD_SOURCE_MAP = {
 # A search/replace dictionary to modify docstring contents before generating
 # markdown from them
 definition_replacements = {}
+
+
+if hasattr(CommonMark, 'DocParser'):
+    raise EnvironmentError("CommonMark must be version 0.6.0 or newer")
 
 
 def _get_func_info(docstring, def_lineno, code_lines, prefix):
@@ -53,8 +56,15 @@ def _get_func_info(docstring, def_lineno, code_lines, prefix):
          - [1] A markdown snippet of the function description
     """
 
-    definition = code_lines[def_lineno - 1]
-    definition = definition.strip().rstrip(':')
+    def_index = def_lineno - 1
+    definition = code_lines[def_index]
+    definition = definition.rstrip()
+    while not definition.endswith(':'):
+        def_index += 1
+        definition += '\n' + code_lines[def_index].rstrip()
+
+    definition = textwrap.dedent(definition).rstrip(':')
+    definition = definition.replace('\n', '\n' + prefix)
 
     description = ''
     found_colon = False
@@ -76,7 +86,7 @@ def _get_func_info(docstring, def_lineno, code_lines, prefix):
     description = description.strip()
     description_md = ''
     if description:
-        description_md = "%s%s" % (prefix, description.replace("\n", "\n" + prefix))
+        description_md = '%s%s' % (prefix, description.replace('\n', '\n' + prefix))
         description_md = re.sub('\n>(\\s+)\n', '\n>\n', description_md)
 
     params = params.strip()
@@ -120,21 +130,40 @@ def _find_sections(md_ast, sections, last, last_class, total_lines=None):
         used to work around a bug in the API of the Python port of CommonMark
     """
 
-    for child in md_ast.children:
-        if child.t == 'ATXHeader':
+    def child_walker(node):
+        for child, entering in node.walker():
+            if child == node:
+                continue
+            yield child, entering
 
-            if child.level in set([3, 5]) and len(child.inline_content) == 2:
-                first = child.inline_content[0]
-                second = child.inline_content[1]
-                if first.t != 'Code':
+
+    for child, entering in child_walker(md_ast):
+        if child.t == 'heading':
+            start_line = child.sourcepos[0][0]
+
+            if child.level == 2:
+                if last:
+                    sections[(last['type_name'], last['identifier'])] = (last['start_line'], start_line - 1)
+                    last.clear()
+
+            if child.level in set([3, 5]):
+                heading_elements = []
+                for heading_child, _ in child_walker(child):
+                    heading_elements.append(heading_child)
+                if len(heading_elements) != 2:
                     continue
-                if second.t != 'Str':
+                first = heading_elements[0]
+                second = heading_elements[1]
+                if first.t != 'code':
                     continue
-                type_name = second.c.strip()
-                identifier = first.c.strip().replace('()', '').lstrip('.')
+                if second.t != 'text':
+                    continue
+
+                type_name = second.literal.strip()
+                identifier = first.literal.strip().replace('()', '').lstrip('.')
 
                 if last:
-                    sections[(last['type_name'], last['identifier'])] = (last['start_line'], child.start_line - 1)
+                    sections[(last['type_name'], last['identifier'])] = (last['start_line'], start_line - 1)
                     last.clear()
 
                 if type_name == 'function':
@@ -154,10 +183,10 @@ def _find_sections(md_ast, sections, last, last_class, total_lines=None):
                 last.update({
                     'type_name': type_name,
                     'identifier': identifier,
-                    'start_line': child.start_line,
+                    'start_line': start_line,
                 })
 
-        elif child.t == 'BlockQuote':
+        elif child.t == 'block_quote':
             find_sections(child, sections, last, last_class)
 
     if last:
@@ -311,7 +340,7 @@ def walk_ast(node, code_lines, sections, md_chunks):
                         description_md
                     )
 
-                md_chunks[key] = md_chunk.rstrip()
+                md_chunks[key] = re.sub('[ \\t]+\n', '\n', md_chunk.rstrip())
 
     elif isinstance(node, _ast.If):
         for subast in node.body:
@@ -348,7 +377,7 @@ def run():
                 continue
             md_files.append(os.path.join(root, filename))
 
-    parser = CommonMark.DocParser()
+    parser = CommonMark.Parser()
 
     for md_file in md_files:
         md_file_relative = md_file[len(project_dir) + 1:]
