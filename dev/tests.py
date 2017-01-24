@@ -4,27 +4,7 @@ from __future__ import unicode_literals, division, absolute_import, print_functi
 import unittest
 import re
 
-from tests.test_certificate_builder import CertificateBuilderTests
-
-
-test_classes = [CertificateBuilderTests]
-
-
-def make_suite():
-    """
-    Constructs a unittest.TestSuite() of all tests for the package. For use
-    with setuptools.
-
-    :return:
-        A unittest.TestSuite() object
-    """
-
-    loader = unittest.TestLoader()
-    suite = unittest.TestSuite()
-    for test_class in test_classes:
-        tests = loader.loadTestsFromTestCase(test_class)
-        suite.addTests(tests)
-    return suite
+from tests import test_classes
 
 
 def run(matcher=None):
@@ -41,7 +21,7 @@ def run(matcher=None):
 
     suite = unittest.TestSuite()
     loader = unittest.TestLoader()
-    for test_class in test_classes:
+    for test_class in test_classes():
         if matcher:
             names = loader.getTestCaseNames(test_class)
             for name in names:
