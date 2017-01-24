@@ -12,6 +12,11 @@ A Python library for creating and signing X.509 certificates.
  - [Testing](#testing)
  - [Development](#development)
 
+[![Travis CI](https://api.travis-ci.org/wbond/certbuilder.svg?branch=master)](https://travis-ci.org/wbond/certbuilder)
+[![AppVeyor](https://ci.appveyor.com/api/projects/status/github/wbond/certbuilder?branch=master&svg=true)](https://ci.appveyor.com/project/wbond/certbuilder)
+[![Codecov](https://codecov.io/gh/wbond/certbuilder/branch/master/graph/badge.svg)](https://codecov.io/gh/wbond/certbuilder)
+[![PyPI](https://img.shields.io/pypi/v/certbuilder.svg)](https://pypi.python.org/pypi/certbuilder)
+
 ## Related Crypto Libraries
 
 *certbuilder* is part of the modularcrypto family of Python packages:
@@ -53,6 +58,7 @@ pip install certbuilder
 
  - [Windows](https://ci.appveyor.com/project/wbond/certbuilder/history) via AppVeyor
  - [OS X & Linux](https://travis-ci.org/wbond/certbuilder/builds) via Travis CI
+ - [Test Coverage](https://codecov.io/gh/wbond/certbuilder/commits) via Codecov
 
 ## Testing
 
