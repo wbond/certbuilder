@@ -3,7 +3,7 @@ import shutil
 
 from setuptools import setup, find_packages, Command
 
-import certbuilder
+from certbuilder import version
 
 
 class CleanCommand(Command):
@@ -27,7 +27,7 @@ class CleanCommand(Command):
 
 setup(
     name='certbuilder',
-    version=certbuilder.__version__,
+    version=version.__version__,
 
     description='Creates and signs X.509 certificates',
     long_description='Docs for this project are maintained at https://github.com/wbond/certbuilder#readme.',
