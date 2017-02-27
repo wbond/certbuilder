@@ -1,6 +1,7 @@
 __pycache__/
 *.pyc
 .python-version
+.eggs/
 *.egg-info/
 build/
 dist/
