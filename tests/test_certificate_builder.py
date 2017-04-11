@@ -1,10 +1,12 @@
 # coding: utf-8
 from __future__ import unicode_literals, division, absolute_import, print_function
 
+from datetime import datetime
 import unittest
 import os
 
 import asn1crypto.x509
+from asn1crypto.util import timezone
 from oscrypto import asymmetric
 from certbuilder import CertificateBuilder
 
@@ -237,6 +239,54 @@ class CertificateBuilderTests(unittest.TestCase):
         self.assertEqual(False, new_certificate.ca)
         self.assertEqual(False, new_certificate.self_issued)
         self.assertEqual('no', new_certificate.self_signed)
+
+    def test_validity_utc_times(self):
+        public_key, private_key = self.ec_secp256r1
+
+        builder = CertificateBuilder(
+            {
+                'country_name': 'US',
+                'state_or_province_name': 'Massachusetts',
+                'locality_name': 'Newbury',
+                'organization_name': 'Codex Non Sufficit LC',
+                'common_name': 'Will Bond',
+            },
+            public_key
+        )
+        builder.self_signed = True
+        builder.begin_date = datetime(2045, 1, 1, tzinfo=timezone.utc)
+        builder.end_date = datetime(2049, 12, 31, tzinfo=timezone.utc)
+        certificate = builder.build(private_key)
+        der_bytes = certificate.dump()
+
+        new_certificate = asn1crypto.x509.Certificate.load(der_bytes)
+
+        self.assertEqual(new_certificate['tbs_certificate']['validity']['not_before'].name, 'utc_time')
+        self.assertEqual(new_certificate['tbs_certificate']['validity']['not_after'].name, 'utc_time')
+
+    def test_validity_general_times(self):
+        public_key, private_key = self.ec_secp256r1
+
+        builder = CertificateBuilder(
+            {
+                'country_name': 'US',
+                'state_or_province_name': 'Massachusetts',
+                'locality_name': 'Newbury',
+                'organization_name': 'Codex Non Sufficit LC',
+                'common_name': 'Will Bond',
+            },
+            public_key
+        )
+        builder.self_signed = True
+        builder.begin_date = datetime(2050, 1, 1, tzinfo=timezone.utc)
+        builder.end_date = datetime(2052, 1, 1, tzinfo=timezone.utc)
+        certificate = builder.build(private_key)
+        der_bytes = certificate.dump()
+
+        new_certificate = asn1crypto.x509.Certificate.load(der_bytes)
+
+        self.assertEqual(new_certificate['tbs_certificate']['validity']['not_before'].name, 'general_time')
+        self.assertEqual(new_certificate['tbs_certificate']['validity']['not_after'].name, 'general_time')
 
     # Cached key pairs
     @lazy_class_property

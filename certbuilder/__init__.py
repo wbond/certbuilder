@@ -864,6 +864,15 @@ class CertificateBuilder(object):
 
         signature_algorithm_id = '%s_%s' % (self._hash_algo, signature_algo)
 
+        # RFC 3280 4.1.2.5
+        def _make_validity_time(dt):
+            if dt < datetime(2050, 1, 1, tzinfo=timezone.utc):
+                value = x509.Time(name='utc_time', value=dt)
+            else:
+                value = x509.Time(name='general_time', value=dt)
+
+            return value
+
         def _make_extension(name, value):
             return {
                 'extn_id': name,
@@ -890,8 +899,8 @@ class CertificateBuilder(object):
             },
             'issuer': self._issuer,
             'validity': {
-                'not_before': x509.Time(name='utc_time', value=self._begin_date),
-                'not_after': x509.Time(name='utc_time', value=self._end_date),
+                'not_before': _make_validity_time(self._begin_date),
+                'not_after': _make_validity_time(self._end_date),
             },
             'subject': self._subject,
             'subject_public_key_info': self._subject_public_key,
