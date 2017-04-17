@@ -404,13 +404,14 @@ class CertificateBuilder(object):
         """
 
         if self._subject_alt_name is None:
-            return []
+            values = []
+        else:
+            values = [
+                general_name.native for general_name in self._subject_alt_name
+                if general_name.name == name
+            ]
 
-        output = []
-        for general_name in self._subject_alt_name:
-            if general_name.name == name:
-                output.append(general_name.native)
-        return output
+        return values
 
     def _set_subject_alt(self, name, values):
         """
@@ -426,22 +427,18 @@ class CertificateBuilder(object):
         """
 
         if self._subject_alt_name is not None:
-            filtered_general_names = []
-            for general_name in self._subject_alt_name:
-                if general_name.name != name:
-                    filtered_general_names.append(general_name)
-            self._subject_alt_name = x509.GeneralNames(filtered_general_names)
-
+            names = [
+                general_name for general_name in self._subject_alt_name
+                if general_name.name != name
+            ]
         else:
-            self._subject_alt_name = x509.GeneralNames()
+            names = []
 
-        if values is not None:
-            for value in values:
-                new_general_name = x509.GeneralName(name=name, value=value)
-                self._subject_alt_name.append(new_general_name)
+        names.extend(
+            (x509.GeneralName(name=name, value=value) for value in values)
+        )
 
-        if len(self._subject_alt_name) == 0:
-            self._subject_alt_name = None
+        self._subject_alt_name = x509.GeneralNames(names) if (len(names) > 0) else None
 
     @property
     def key_usage(self):
