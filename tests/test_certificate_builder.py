@@ -118,7 +118,7 @@ class CertificateBuilderTests(unittest.TestCase):
         self.assertEqual(None, new_certificate.authority_key_identifier)
         self.assertEqual(False, new_certificate.ca)
         self.assertEqual(True, new_certificate.self_issued)
-        self.assertEqual('yes', new_certificate.self_signed)
+        self.assertEqual('maybe', new_certificate.self_signed)
         self.assertEqual(certificate.public_key.sha1, new_certificate.key_identifier)
         self.assertEqual(['example.com'], new_certificate.valid_domains)
 
@@ -171,7 +171,7 @@ class CertificateBuilderTests(unittest.TestCase):
         self.assertEqual(None, new_certificate.authority_key_identifier)
         self.assertEqual(True, new_certificate.ca)
         self.assertEqual(True, new_certificate.self_issued)
-        self.assertEqual('yes', new_certificate.self_signed)
+        self.assertEqual('maybe', new_certificate.self_signed)
         self.assertEqual(certificate.public_key.sha1, new_certificate.key_identifier)
 
     def test_build_chain_of_certs(self):
