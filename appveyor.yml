@@ -1,42 +1,37 @@
 version: "{build}"
 skip_tags: true
+environment:
+  matrix:
+    - PYTHON_EXE: "C:\\Python26\\python.exe"
+    - PYTHON_EXE: "C:\\Python26-x64\\python.exe"
+    - PYTHON_EXE: "C:\\Python27\\python.exe"
+    - PYTHON_EXE: "C:\\Python27\\python.exe"
+      OSCRYPTO_USE_WINLEGACY: "true"
+    - PYTHON_EXE: "C:\\Python27-x64\\python.exe"
+    - PYTHON_EXE: "C:\\Python33\\python.exe"
+    - PYTHON_EXE: "C:\\Python33\\python.exe"
+      OSCRYPTO_USE_WINLEGACY: "true"
+    - PYTHON_EXE: "C:\\Python33-x64\\python.exe"
+    - PYTHON_EXE: "C:\\Python36\\python.exe"
+    - PYTHON_EXE: "C:\\Python36-x64\\python.exe"
+    - PYTHON_EXE: "C:\\pypy2-v5.10.0-win32\\pypy.exe"
+    - PYTHON_EXE: "C:\\pypy2-v5.10.0-win32\\pypy.exe"
+      OSCRYPTO_USE_WINLEGACY: "true"
 install:
   - ps: |-
       $env:PYTMP = "${env:TMP}\py";
       if (!(Test-Path "$env:PYTMP")) {
         New-Item -ItemType directory -Path "$env:PYTMP" | Out-Null;
       }
-      if (!(Test-Path "${env:PYTMP}\pypy2-v5.7.1-win32.zip")) {
-        (New-Object Net.WebClient).DownloadFile('https://bitbucket.org/pypy/pypy/downloads/pypy2-v5.7.1-win32.zip', "${env:PYTMP}\pypy2-v5.7.1-win32.zip");
+      if ("${env:PYTHON_EXE}" -eq "C:\pypy2-v5.10.0-win32\pypy.exe") {
+        if (!(Test-Path "${env:PYTMP}\pypy2-v5.10.0-win32.zip")) {
+          (New-Object Net.WebClient).DownloadFile('https://bitbucket.org/pypy/pypy/downloads/pypy2-v5.10.0-win32.zip', "${env:PYTMP}\pypy2-v5.10.0-win32.zip");
+        }
+        7z x -y "${env:PYTMP}\pypy2-v5.10.0-win32.zip" -oC:\ | Out-Null;
       }
-      7z x -y "${env:PYTMP}\pypy2-v5.7.1-win32.zip" -oC:\ | Out-Null;
 cache:
   - '%TMP%\py\'
 build: off
 test_script:
-  - ps: '& C:\Python26\python run.py deps'
-  - ps: '& C:\Python26\python run.py ci'
-  - ps: '& C:\Python26-x64\python run.py deps'
-  - ps: '& C:\Python26-x64\python run.py ci'
-  - ps: '& C:\Python27\python run.py deps'
-  - ps: '& C:\Python27\python run.py ci'
-  - ps: >
-      $env:OSCRYPTO_USE_WINLEGACY = "true";
-      & C:\Python27\python run.py ci;
-      remove-item env:\OSCRYPTO_USE_WINLEGACY;
-  - ps: '& C:\Python27-x64\python run.py deps'
-  - ps: '& C:\Python27-x64\python run.py ci'
-  - ps: '& C:\Python33\python run.py deps'
-  - ps: '& C:\Python33\python run.py ci'
-  - ps: >
-      $env:OSCRYPTO_USE_WINLEGACY = "true";
-      & C:\Python33\python run.py ci;
-      remove-item env:\OSCRYPTO_USE_WINLEGACY;
-  - ps: '& C:\Python33-x64\python run.py deps'
-  - ps: '& C:\Python33-x64\python run.py ci'
-  - ps: '& C:\pypy2-v5.7.1-win32\pypy run.py deps'
-  - ps: '& C:\pypy2-v5.7.1-win32\pypy run.py ci'
-  - ps: >
-      $env:OSCRYPTO_USE_WINLEGACY = "true";
-      & C:\pypy2-v5.7.1-win32\pypy run.py ci;
-      remove-item env:\OSCRYPTO_USE_WINLEGACY;
+  - cmd: "%PYTHON_EXE% run.py deps"
+  - cmd: "%PYTHON_EXE% run.py ci"
