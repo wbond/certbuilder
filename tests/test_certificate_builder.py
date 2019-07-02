@@ -68,7 +68,7 @@ class CertificateBuilderTests(unittest.TestCase):
 
         certificate = builder.build(private_key)
 
-        self.assertEqual(b'\x86\x18https://xn--bcher-kva.ch', certificate.subject_alt_name_value[0].contents)
+        self.assertEqual(b'https://xn--bcher-kva.ch', certificate.subject_alt_name_value[0].contents)
 
     def test_build_end_entity_cert(self):
         public_key, private_key = self.ec_secp256r1
