@@ -1,16 +1,17 @@
 # coding: utf-8
 from __future__ import unicode_literals, division, absolute_import, print_function
 
-import sys
 import os
-import imp
+import site
+import sys
 
-from . import build_root
+from . import build_root, requires_oscrypto
+from ._import import _preload
 
 
 deps_dir = os.path.join(build_root, 'modularcrypto-deps')
 if os.path.exists(deps_dir):
-    sys.path.insert(1, deps_dir)
+    site.addsitedir(deps_dir)
 
 if sys.version_info[0:2] not in [(2, 6), (3, 2)]:
     from .lint import run as run_lint
@@ -34,15 +35,7 @@ def run():
         A bool - if the linter and tests ran successfully
     """
 
-    print('Python ' + sys.version.replace('\n', ''))
-
-    try:
-        oscrypto_tests_module_info = imp.find_module('tests', [os.path.join(build_root, 'oscrypto')])
-        oscrypto_tests = imp.load_module('oscrypto.tests', *oscrypto_tests_module_info)
-        oscrypto = oscrypto_tests.local_oscrypto()
-        print('\noscrypto backend: %s' % oscrypto.backend())
-    except (ImportError):
-        pass
+    _preload(requires_oscrypto, True)
 
     if run_lint:
         print('')
@@ -57,7 +50,7 @@ def run():
     else:
         print('\nRunning tests')
         sys.stdout.flush()
-        tests_result = run_tests()
+        tests_result = run_tests(ci=True)
     sys.stdout.flush()
 
     return lint_result and tests_result

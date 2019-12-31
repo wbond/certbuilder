@@ -1,20 +1,21 @@
 # coding: utf-8
 from __future__ import unicode_literals, division, absolute_import, print_function
 
-import re
-import os
 import ast
 import _ast
+import os
+import re
+import sys
 import textwrap
 
-import CommonMark
+import commonmark
 from collections import OrderedDict
 
 from . import package_name, package_root, md_source_map, definition_replacements
 
 
-if hasattr(CommonMark, 'DocParser'):
-    raise EnvironmentError("CommonMark must be version 0.6.0 or newer")
+if hasattr(commonmark, 'DocParser'):
+    raise EnvironmentError("commonmark must be version 0.6.0 or newer")
 
 
 def _get_func_info(docstring, def_lineno, code_lines, prefix):
@@ -90,7 +91,7 @@ def _get_func_info(docstring, def_lineno, code_lines, prefix):
 
 def _find_sections(md_ast, sections, last, last_class, total_lines=None):
     """
-    Walks through a CommonMark AST to find section headers that delineate
+    Walks through a commonmark AST to find section headers that delineate
     content that should be updated by this script
 
     :param md_ast:
@@ -113,7 +114,7 @@ def _find_sections(md_ast, sections, last, last_class, total_lines=None):
 
     :param total_lines:
         An integer of the total number of lines in the markdown document -
-        used to work around a bug in the API of the Python port of CommonMark
+        used to work around a bug in the API of the Python port of commonmark
     """
 
     def child_walker(node):
@@ -251,7 +252,9 @@ def walk_ast(node, code_lines, sections, md_chunks):
                     continue
 
                 docstring = ast.get_docstring(subnode)
-                def_lineno = subnode.lineno + len(subnode.decorator_list)
+                def_lineno = subnode.lineno
+                if sys.version_info < (3, 8):
+                    def_lineno += len(subnode.decorator_list)
 
                 if not docstring:
                     continue
@@ -363,7 +366,7 @@ def run():
                 continue
             md_files.append(os.path.join(root, filename))
 
-    parser = CommonMark.Parser()
+    parser = commonmark.Parser()
 
     for md_file in md_files:
         md_file_relative = md_file[len(package_root) + 1:]

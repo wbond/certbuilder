@@ -4,16 +4,12 @@ environment:
   matrix:
     - PYTHON_EXE: "C:\\Python26\\python.exe"
     - PYTHON_EXE: "C:\\Python26-x64\\python.exe"
-    - PYTHON_EXE: "C:\\Python27\\python.exe"
-    - PYTHON_EXE: "C:\\Python27\\python.exe"
+    - PYTHON_EXE: "C:\\Python26-x64\\python.exe"
       OSCRYPTO_USE_WINLEGACY: "true"
-    - PYTHON_EXE: "C:\\Python27-x64\\python.exe"
     - PYTHON_EXE: "C:\\Python33\\python.exe"
     - PYTHON_EXE: "C:\\Python33\\python.exe"
       OSCRYPTO_USE_WINLEGACY: "true"
     - PYTHON_EXE: "C:\\Python33-x64\\python.exe"
-    - PYTHON_EXE: "C:\\Python36\\python.exe"
-    - PYTHON_EXE: "C:\\Python36-x64\\python.exe"
     - PYTHON_EXE: "C:\\pypy2-v5.10.0-win32\\pypy.exe"
     - PYTHON_EXE: "C:\\pypy2-v5.10.0-win32\\pypy.exe"
       OSCRYPTO_USE_WINLEGACY: "true"
@@ -28,6 +24,7 @@ install:
           (New-Object Net.WebClient).DownloadFile('https://bitbucket.org/pypy/pypy/downloads/pypy2-v5.10.0-win32.zip', "${env:PYTMP}\pypy2-v5.10.0-win32.zip");
         }
         7z x -y "${env:PYTMP}\pypy2-v5.10.0-win32.zip" -oC:\ | Out-Null;
+        & ${env:PYTHON_EXE} -m ensurepip --upgrade;
       }
 cache:
   - '%TMP%\py\'
