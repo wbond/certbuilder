@@ -13,6 +13,7 @@ A Python library for creating and signing X.509 certificates.
  - [Development](#development)
  - [CI Tasks](#ci-tasks)
 
+[![GitHub Actions CI](https://github.com/wbond/certbuilder/workflows/CI/badge.svg)](https://github.com/wbond/certbuilder/actions?workflow=CI)
 [![Travis CI](https://api.travis-ci.org/wbond/certbuilder.svg?branch=master)](https://travis-ci.org/wbond/certbuilder)
 [![AppVeyor](https://ci.appveyor.com/api/projects/status/github/wbond/certbuilder?branch=master&svg=true)](https://ci.appveyor.com/project/wbond/certbuilder)
 [![CircleCI](https://circleci.com/gh/wbond/certbuilder.svg?style=shield)](https://circleci.com/gh/wbond/certbuilder)
