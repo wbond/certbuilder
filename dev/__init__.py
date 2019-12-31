@@ -8,6 +8,11 @@ package_name = "certbuilder"
 
 other_packages = []
 
+task_keyword_args = []
+
+requires_oscrypto = True
+has_tests_package = False
+
 package_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 build_root = os.path.abspath(os.path.join(package_root, '..'))
 
