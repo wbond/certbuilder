@@ -1,10 +1,12 @@
 *.egg-info/
 .eggs/
 .tox/
+.idea/
 __pycache__/
 build/
 dist/
 tests/output/
+venv/
 *.pyc
 .coverage
 .DS_Store
