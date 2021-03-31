@@ -7,10 +7,10 @@ import re
 import sys
 import textwrap
 import time
+from functools import partial
 
 from asn1crypto import x509, keys, core
 from asn1crypto.util import int_to_bytes, int_from_bytes, timezone
-from oscrypto import asymmetric, util
 
 from .version import __version__, __version_info__
 
@@ -52,7 +52,7 @@ def pem_armor_certificate(certificate):
     :return:
         A byte string of the PEM-encoded certificate
     """
-
+    from oscrypto import asymmetric
     return asymmetric.dump_certificate(certificate)
 
 
@@ -171,17 +171,16 @@ class CertificateBuilder(object):
         both the issuer field, but also the authority key identifier extension.
         """
 
-        is_oscrypto = isinstance(value, asymmetric.Certificate)
-        if not isinstance(value, x509.Certificate) and not is_oscrypto:
-            raise TypeError(_pretty_message(
-                '''
-                issuer must be an instance of asn1crypto.x509.Certificate or
-                oscrypto.asymmetric.Certificate, not %s
-                ''',
-                _type_name(value)
-            ))
-
-        if is_oscrypto:
+        if not isinstance(value, x509.Certificate):
+            from oscrypto import asymmetric
+            if not isinstance(value, asymmetric.Certificate):
+                raise TypeError(_pretty_message(
+                    '''
+                    issuer must be an instance of asn1crypto.x509.Certificate or
+                    oscrypto.asymmetric.Certificate, not %s
+                    ''',
+                    _type_name(value)
+                ))
             value = value.asn1
 
         self._issuer = value.subject
@@ -285,18 +284,17 @@ class CertificateBuilder(object):
         object of the subject's public key.
         """
 
-        is_oscrypto = isinstance(value, asymmetric.PublicKey)
-        if not isinstance(value, keys.PublicKeyInfo) and not is_oscrypto:
-            raise TypeError(_pretty_message(
-                '''
-                subject_public_key must be an instance of
-                asn1crypto.keys.PublicKeyInfo or oscrypto.asymmetric.PublicKey,
-                not %s
-                ''',
-                _type_name(value)
-            ))
-
-        if is_oscrypto:
+        if not isinstance(value, keys.PublicKeyInfo):
+            from oscrypto import asymmetric
+            if not isinstance(value, asymmetric.PublicKey):
+                raise TypeError(_pretty_message(
+                    '''
+                    subject_public_key must be an instance of
+                    asn1crypto.keys.PublicKeyInfo or oscrypto.asymmetric.PublicKey,
+                    not %s
+                    ''',
+                    _type_name(value)
+                ))
             value = value.asn1
 
         self._subject_public_key = value
@@ -806,7 +804,8 @@ class CertificateBuilder(object):
         and then signs it
 
         :param signing_private_key:
-            An asn1crypto.keys.PrivateKeyInfo or oscrypto.asymmetric.PrivateKey
+            An object with a `.sign` callable and `.algorithm` field, or
+            an asn1crypto.keys.PrivateKeyInfo or oscrypto.asymmetric.PrivateKey
             object for the private key to sign the certificate with. If the key
             is self-signed, this should be the private key that matches the
             public key, otherwise it needs to be the issuer's private key.
@@ -816,16 +815,38 @@ class CertificateBuilder(object):
             certificate
         """
 
-        is_oscrypto = isinstance(signing_private_key, asymmetric.PrivateKey)
-        if not isinstance(signing_private_key, keys.PrivateKeyInfo) and not is_oscrypto:
+        if hasattr(signing_private_key, 'sign') and callable(signing_private_key.sign):
+            sign_func = signing_private_key.sign
+        else:
+            from oscrypto import asymmetric
+            if isinstance(signing_private_key, keys.PrivateKeyInfo):
+                signing_private_key = asymmetric.load_private_key(signing_private_key)
+
+            if isinstance(signing_private_key, asymmetric.PrivateKey):
+                if signing_private_key.algorithm == 'rsa':
+                    sign_func = partial(asymmetric.rsa_pkcs1v15_sign, signing_private_key)
+                elif signing_private_key.algorithm == 'dsa':
+                    sign_func = partial(asymmetric.dsa_sign, signing_private_key)
+                elif signing_private_key.algorithm == 'ec':
+                    sign_func = partial(asymmetric.ecdsa_sign, signing_private_key)
+
+        if not sign_func:
             raise TypeError(_pretty_message(
                 '''
                 signing_private_key must be an instance of
                 asn1crypto.keys.PrivateKeyInfo or
-                oscrypto.asymmetric.PrivateKey, not %s
+                oscrypto.asymmetric.PrivateKey, or
+                must have a `sign` callable.
+                %s does not satisfy any of the above.
                 ''',
                 _type_name(signing_private_key)
             ))
+
+        signature_algo = signing_private_key.algorithm
+        if signature_algo == 'ec':
+            signature_algo = 'ecdsa'
+
+        signature_algorithm_id = '%s_%s' % (self._hash_algo, signature_algo)
 
         if self._self_signed is not True and self._issuer is None:
             raise ValueError(_pretty_message(
@@ -838,6 +859,7 @@ class CertificateBuilder(object):
             self._issuer = self._subject
 
         if self._serial_number is None:
+            from oscrypto import util
             time_part = int_to_bytes(int(time.time()))
             random_part = util.rand_bytes(4)
             self._serial_number = int_from_bytes(time_part + random_part)
@@ -857,12 +879,6 @@ class CertificateBuilder(object):
                         ''',
                         ca_only_extension
                     ))
-
-        signature_algo = signing_private_key.algorithm
-        if signature_algo == 'ec':
-            signature_algo = 'ecdsa'
-
-        signature_algorithm_id = '%s_%s' % (self._hash_algo, signature_algo)
 
         # RFC 3280 4.1.2.5
         def _make_validity_time(dt):
@@ -907,16 +923,7 @@ class CertificateBuilder(object):
             'extensions': extensions
         })
 
-        if signing_private_key.algorithm == 'rsa':
-            sign_func = asymmetric.rsa_pkcs1v15_sign
-        elif signing_private_key.algorithm == 'dsa':
-            sign_func = asymmetric.dsa_sign
-        elif signing_private_key.algorithm == 'ec':
-            sign_func = asymmetric.ecdsa_sign
-
-        if not is_oscrypto:
-            signing_private_key = asymmetric.load_private_key(signing_private_key)
-        signature = sign_func(signing_private_key, tbs_cert.dump(), self._hash_algo)
+        signature = sign_func(tbs_cert.dump(), self._hash_algo)
 
         return x509.Certificate({
             'tbs_certificate': tbs_cert,
