@@ -56,10 +56,8 @@ pip install certbuilder
 
 ## Continuous Integration
 
- - [Windows](https://ci.appveyor.com/project/wbond/certbuilder/history) via AppVeyor
- - [OS X](https://circleci.com/gh/wbond/certbuilder) via CircleCI
- - [Linux](https://travis-ci.org/wbond/certbuilder/builds) via Travis CI
- - [Test Coverage](https://codecov.io/gh/wbond/certbuilder/commits) via Codecov
+ - [macOS, Linux, Windows](https://github.com/wbond/certbuilder/actions/workflows/ci.yml) via GitHub Actions
+ - [arm64](https://circleci.com/gh/wbond/certbuilder) via CircleCI
 
 ## Testing
 
