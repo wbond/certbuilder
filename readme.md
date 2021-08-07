@@ -14,10 +14,7 @@ A Python library for creating and signing X.509 certificates.
  - [CI Tasks](#ci-tasks)
 
 [![GitHub Actions CI](https://github.com/wbond/certbuilder/workflows/CI/badge.svg)](https://github.com/wbond/certbuilder/actions?workflow=CI)
-[![Travis CI](https://api.travis-ci.org/wbond/certbuilder.svg?branch=master)](https://travis-ci.org/wbond/certbuilder)
-[![AppVeyor](https://ci.appveyor.com/api/projects/status/github/wbond/certbuilder?branch=master&svg=true)](https://ci.appveyor.com/project/wbond/certbuilder)
 [![CircleCI](https://circleci.com/gh/wbond/certbuilder.svg?style=shield)](https://circleci.com/gh/wbond/certbuilder)
-[![Codecov](https://codecov.io/gh/wbond/certbuilder/branch/master/graph/badge.svg)](https://codecov.io/gh/wbond/certbuilder)
 [![PyPI](https://img.shields.io/pypi/v/certbuilder.svg)](https://pypi.python.org/pypi/certbuilder)
 
 ## Related Crypto Libraries
@@ -40,7 +37,7 @@ A Python library for creating and signing X.509 certificates.
 
  - [*asn1crypto*](https://github.com/wbond/asn1crypto)
  - [*oscrypto*](https://github.com/wbond/oscrypto)
- - Python 2.6, 2.7, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8 or pypy
+ - Python 2.6, 2.7, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9 or pypy
 
 ## Installation
 
