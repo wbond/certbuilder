@@ -214,6 +214,16 @@
 > >         is self-signed, this should be the private key that matches the
 > >         public key, otherwise it needs to be the issuer's private key.
 > >
+> >         Alternatively, a callable may be provided to sign the certificate.
+> >         In this case, the callable must have an attribute `algorithm` that
+> >         identifies the signature algorithm.  This will be called as:
+> > 
+> >             signing_private_key(data, hash_algorithm)
+> > 
+> >         data – A byte string of the data the signature is for
+> >         hash_algorithm – A unicode string of "md5", "sha1", "sha224", "sha256", "sha384" or "sha512"
+> >         The callable should return a byte string of the signature.
+> > 
 > >     :return:
 > >         An asn1crypto.x509.Certificate object of the newly signed
 > >         certificate
