@@ -288,6 +288,27 @@ class CertificateBuilderTests(unittest.TestCase):
         self.assertEqual(new_certificate['tbs_certificate']['validity']['not_before'].name, 'general_time')
         self.assertEqual(new_certificate['tbs_certificate']['validity']['not_after'].name, 'general_time')
 
+    def test_tsa_certificate_extended_key_usage(self):
+        public_key, private_key = self.ec_secp256r1
+
+        builder = CertificateBuilder(
+            {
+                'country_name': 'US',
+                'state_or_province_name': 'Massachusetts',
+                'locality_name': 'Newbury',
+                'organization_name': 'Codex Non Sufficit LC',
+                'common_name': 'Will Bond',
+            },
+            public_key
+        )
+        builder.self_signed = True
+        builder.extended_key_usage = set(('time_stamping',))
+        certificate = builder.build(private_key)
+        der_bytes = certificate.dump()
+
+        new_certificate = asn1crypto.x509.Certificate.load(der_bytes)
+        self.assertEqual(set(['key_usage', 'extended_key_usage']), new_certificate.critical_extensions)
+
     # Cached key pairs
     @lazy_class_property
     def ec_secp256r1(self):
