@@ -706,9 +706,10 @@ class CertificateBuilder(object):
 
         See the definition of asn1crypto.x509.Extension to determine the
         appropriate object type for a given extension. Extensions are marked
-        as critical when RFC 5280 or RFC 6960 indicate so. If an extension is
-        validly marked as critical or not (such as certificate policies and
-        extended key usage), this class will mark it as non-critical.
+        as critical when RFC 3161, RFC 5280 or RFC 6960 indicate so. If an
+        extension is validly marked as critical or not (such as certificate
+        policies and extended key usage), this class will mark it
+        as non-critical.
 
         :param name:
             A unicode string of an extension id name from
@@ -764,8 +765,9 @@ class CertificateBuilder(object):
 
         :return:
             A bool indicating the correct value of the critical flag for
-            an extension, based on information from RFC 5280 and RFC 6960. The
-            correct value is based on the terminology SHOULD or MUST.
+            an extension, based on information from RFC 3161, RFC 5280 and
+            RFC 6960. The correct value is based on the terminology
+            SHOULD or MUST.
         """
 
         if name == 'subject_alt_name':
@@ -773,6 +775,9 @@ class CertificateBuilder(object):
 
         if name == 'basic_constraints':
             return self.ca is True
+
+        if name == 'extended_key_usage':
+            return 'time_stamping' in self.extended_key_usage
 
         return {
             'subject_directory_attributes': False,
