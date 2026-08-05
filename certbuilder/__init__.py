@@ -811,13 +811,24 @@ class CertificateBuilder(object):
             is self-signed, this should be the private key that matches the
             public key, otherwise it needs to be the issuer's private key.
 
+            Alternatively, a callable may be provided to sign the certificate.
+            In this case, the callable must have an attribute `algorithm` that
+            identifies the signature algorithm.  This will be called as:
+
+                signing_private_key(data, hash_algorithm)
+
+            data – A byte string of the data the signature is for
+            hash_algorithm – A unicode string of "md5", "sha1", "sha224", "sha256", "sha384" or "sha512"
+            The callable should return a byte string of the signature.
+
         :return:
             An asn1crypto.x509.Certificate object of the newly signed
             certificate
         """
 
+        is_callable = callable(signing_private_key)
         is_oscrypto = isinstance(signing_private_key, asymmetric.PrivateKey)
-        if not isinstance(signing_private_key, keys.PrivateKeyInfo) and not is_oscrypto:
+        if not isinstance(signing_private_key, keys.PrivateKeyInfo) and not is_oscrypto and not is_callable:
             raise TypeError(_pretty_message(
                 '''
                 signing_private_key must be an instance of
@@ -907,16 +918,19 @@ class CertificateBuilder(object):
             'extensions': extensions
         })
 
-        if signing_private_key.algorithm == 'rsa':
-            sign_func = asymmetric.rsa_pkcs1v15_sign
-        elif signing_private_key.algorithm == 'dsa':
-            sign_func = asymmetric.dsa_sign
-        elif signing_private_key.algorithm == 'ec':
-            sign_func = asymmetric.ecdsa_sign
+        if is_callable:
+            signature = signing_private_key(tbs_cert.dump(), self._hash_algo)
+        else:
+            if signing_private_key.algorithm == 'rsa':
+                sign_func = asymmetric.rsa_pkcs1v15_sign
+            elif signing_private_key.algorithm == 'dsa':
+                sign_func = asymmetric.dsa_sign
+            elif signing_private_key.algorithm == 'ec':
+                sign_func = asymmetric.ecdsa_sign
 
-        if not is_oscrypto:
-            signing_private_key = asymmetric.load_private_key(signing_private_key)
-        signature = sign_func(signing_private_key, tbs_cert.dump(), self._hash_algo)
+            if not is_oscrypto:
+                signing_private_key = asymmetric.load_private_key(signing_private_key)
+            signature = sign_func(signing_private_key, tbs_cert.dump(), self._hash_algo)
 
         return x509.Certificate({
             'tbs_certificate': tbs_cert,
